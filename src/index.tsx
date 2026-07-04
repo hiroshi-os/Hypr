@@ -8,6 +8,7 @@ import { executeBashTool } from "./tools/bashTool.ts";
 import { viewCodeOutlineTool } from "./tools/outlineTool.ts";
 import { applyMultiDiffTool } from "./tools/multiDiffTool.ts";
 import { scheduleTasksTool, updateTaskStatusTool, globalScheduler } from "./state/scheduler.ts";
+import { connectMcpServerTool, dynamicMcpTools } from "./tools/mcpTool.ts";
 import { loadProjectDirectives } from "./config/directives.ts";
 import { ChatMessage, InteractiveInput, PermissionPrompt, Sidebar, WelcomeLogo } from "./ui/Canvas.tsx";
 
@@ -39,7 +40,8 @@ const toolsList = [
   viewCodeOutlineTool,
   applyMultiDiffTool,
   scheduleTasksTool,
-  updateTaskStatusTool
+  updateTaskStatusTool,
+  connectMcpServerTool
 ];
 
 const HyprApp: React.FC = () => {
@@ -117,10 +119,11 @@ const HyprApp: React.FC = () => {
     try {
       let loop = true;
       while (loop) {
+        const allAvailableTools = [...toolsList, ...dynamicMcpTools];
         const response = await clientRef.current.sendRequest(
           stateRef.current.getSystemPrompt(),
           stateRef.current.getMessages(),
-          toolsList
+          allAvailableTools
         );
 
         if (typeof response.content === "string") {
@@ -143,7 +146,8 @@ const HyprApp: React.FC = () => {
           } else {
             const toolResults: any[] = [];
             for (const call of toolCalls) {
-              const tool = toolsList.find(t => t.name === call.name);
+              const allAvailableTools = [...toolsList, ...dynamicMcpTools];
+              const tool = allAvailableTools.find(t => t.name === call.name);
               if (!tool) {
                 toolResults.push({
                   type: "tool_result",
