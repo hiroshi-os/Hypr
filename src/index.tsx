@@ -10,7 +10,7 @@ import { applyMultiDiffTool } from "./tools/multiDiffTool.ts";
 import { scheduleTasksTool, updateTaskStatusTool, globalScheduler } from "./state/scheduler.ts";
 import { connectMcpServerTool, dynamicMcpTools } from "./tools/mcpTool.ts";
 import { loadProjectDirectives } from "./config/directives.ts";
-import { ChatMessage, InteractiveInput, PermissionPrompt, Sidebar, WelcomeLogo } from "./ui/Canvas.tsx";
+import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo } from "./ui/Canvas.tsx";
 
 // TTY alternate screen buffer switching sequences
 process.stdout.write("\x1b[?1049h"); // enter alternate buffer
@@ -217,46 +217,54 @@ const HyprApp: React.FC = () => {
   const modelName = provider === "anthropic" ? "Claude 3.5 Sonnet" : 
                     provider === "gemini" ? "Gemini 2.5 Flash" : "GPT-5.2 Codex";
 
+  const hasSession = messages.length > 0;
+
+  // Welcome screen: centered logo + input, no sidebar
+  if (!hasSession && status === "idle") {
+    return (
+      <Box flexDirection="column" width={dimensions.columns} height={dimensions.rows} alignItems="center" justifyContent="center">
+        <WelcomeLogo />
+        <Box width={60}>
+          <InteractiveInput onSubmit={handleUserInput} modelName={modelName} />
+        </Box>
+      </Box>
+    );
+  }
+
+  // Active session: two-column flat layout
   return (
-    <Box flexDirection="row" width={dimensions.columns} height={dimensions.rows} padding={1}>
-      {/* Left Chat Pane (65% width equivalent) */}
-      <Box flexDirection="column" width="65%" paddingRight={2}>
-        {messages.length === 0 && <WelcomeLogo />}
-        
-        <Box flexDirection="column">
+    <Box flexDirection="row" width={dimensions.columns} height={dimensions.rows}>
+      {/* Left pane — chat + input */}
+      <Box flexDirection="column" width="65%" paddingLeft={1} paddingTop={1}>
+        <Box flexDirection="column" flexGrow={1}>
           {messages.map((msg, i) => (
             <ChatMessage key={i} message={msg} />
           ))}
+
+          {(status === "thinking" || status === "executing_tool") && (
+            <Box paddingLeft={2} marginBottom={1}>
+              <Text color="yellow" italic>Thinking: </Text>
+              <Text color="gray">{status === "executing_tool" ? currentToolProgress : "Processing your request..."}</Text>
+            </Box>
+          )}
         </Box>
-
-        {status === "thinking" && (
-          <Box marginY={1}>
-            <Text color="gray" italic>⏳ Thinking...</Text>
-          </Box>
-        )}
-
-        {status === "executing_tool" && (
-          <Box marginY={1}>
-            <Text color="gray" dimColor>⚙️ {currentToolProgress}</Text>
-          </Box>
-        )}
 
         {status === "prompting_permission" && (
           <PermissionPrompt message={permissionMsg} onDecision={handlePermissionDecision} />
         )}
 
         {status === "idle" && (
-          <InteractiveInput onSubmit={handleUserInput} modelName={modelName} />
+          <SessionInput onSubmit={handleUserInput} modelName={modelName} status="idle" />
         )}
       </Box>
 
-      {/* Right Sidebar HUD Pane (35% width equivalent) */}
+      {/* Right pane — context sidebar */}
       <Box width="35%">
-        <Sidebar 
-          tasks={tasks} 
-          modelName={modelName} 
-          provider={provider} 
-          cwd={process.cwd()} 
+        <Sidebar
+          tasks={tasks}
+          modelName={modelName}
+          provider={provider}
+          cwd={process.cwd()}
           rulesFound={rulesFound}
         />
       </Box>

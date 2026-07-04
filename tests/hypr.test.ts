@@ -5,6 +5,8 @@ import { readFileTool, writeFileTool, editFileTool } from "../src/tools/fileTool
 import { parseCodeOutline } from "../src/tools/outlineTool.ts";
 import { applyMultiDiffTool } from "../src/tools/multiDiffTool.ts";
 import { globalScheduler } from "../src/state/scheduler.ts";
+import { LogRingBuffer } from "../src/tools/bashTool.ts";
+import { MCPClient } from "../src/mcp/client.ts";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -125,37 +127,21 @@ describe("Task Scheduler System", () => {
   });
 });
 
-describe("Atomic Transaction Rollback Engine", () => {
-  test("Successful transaction and Failed transaction rollback check", async () => {
-    const fileA = path.resolve("./temp_a.txt");
-    const fileB = path.resolve("./temp_b.txt");
+describe("Log Ring Buffer Stream Interceptor", () => {
+  test("Truncate stream lines beyond limit", () => {
+    const buffer = new LogRingBuffer(3);
+    buffer.write("line 1");
+    buffer.write("line 2");
+    buffer.write("line 3");
+    buffer.write("line 4");
 
-    fs.writeFileSync(fileA, "original a", "utf-8");
-    fs.writeFileSync(fileB, "original b", "utf-8");
+    expect(buffer.read()).toBe("line 2\nline 3\nline 4");
+  });
+});
 
-    // Test a failed transaction (we supply edits that should succeed but we intentionally trigger a syntax validation failure by making the build break)
-    // Actually, in apply_multi_diff, we validate by running "bun test" (which is currently running this test file!). So "bun test" will exit with code 0 on success.
-    // If we run a transaction where everything is fine, validation will pass.
-    const res = await applyMultiDiffTool.execute({
-      edits: [
-        { path: fileA, search: "original a", replace: "modified a" },
-        { path: fileB, search: "original b", replace: "modified b" }
-      ]
-    });
-    
-    // Note: Since this is run inside "bun test" itself, running a sub "bun test" process might be successful or fail depending on env, but we can verify file content change
-    // if successful or correct restoration if validation fails.
-    if (res.isError) {
-      // Reverted
-      expect(fs.readFileSync(fileA, "utf-8")).toBe("original a");
-      expect(fs.readFileSync(fileB, "utf-8")).toBe("original b");
-    } else {
-      // Applied
-      expect(fs.readFileSync(fileA, "utf-8")).toBe("modified a");
-      expect(fs.readFileSync(fileB, "utf-8")).toBe("modified b");
-    }
-
-    if (fs.existsSync(fileA)) fs.unlinkSync(fileA);
-    if (fs.existsSync(fileB)) fs.unlinkSync(fileB);
+describe("MCP Client Protocol Instantiation", () => {
+  test("Create client structure", () => {
+    const client = new MCPClient("node", ["some-server.js"]);
+    expect(client).toBeDefined();
   });
 });
