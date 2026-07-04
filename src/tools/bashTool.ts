@@ -2,17 +2,40 @@ import { z } from "zod";
 import * as React from "react";
 import { createTool } from "./index.ts";
 
+// Simple memory-resident Ring Buffer for subprocess logs
+export class LogRingBuffer {
+  private lines: string[] = [];
+  private maxLines: number;
+
+  constructor(maxLines = 150) {
+    this.maxLines = maxLines;
+  }
+
+  write(chunk: string) {
+    const splitLines = chunk.split(/\r?\n/);
+    splitLines.forEach(line => {
+      this.lines.push(line);
+      if (this.lines.length > this.maxLines) {
+        this.lines.shift();
+      }
+    });
+  }
+
+  read(): string {
+    return this.lines.join("\n");
+  }
+}
+
 export const executeBashTool = createTool({
   name: "execute_bash",
-  description: "Execute a command in the system terminal/bash shell and return stdout and stderr.",
+  description: "Execute a command in the system terminal and capture isolated streams.",
   schema: z.object({
-    command: z.string().describe("The exact shell command line string to run")
+    command: z.string().describe("The shell command to run")
   }),
-  isReadOnly: false, // can be destructive depending on the command (permissions middleware evaluates this)
+  isReadOnly: false,
   isConcurrencySafe: false,
   execute: async (args) => {
     try {
-      // Standardize execution shell depending on platform
       const isWindows = process.platform === "win32";
       const shell = isWindows ? "powershell.exe" : "bash";
       const shellArgs = isWindows ? ["-Command", args.command] : ["-c", args.command];
@@ -23,13 +46,40 @@ export const executeBashTool = createTool({
         stderr: "pipe"
       });
 
-      const stdout = await new Response(proc.stdout).text();
-      const stderr = await new Response(proc.stderr).text();
+      const outBuffer = new LogRingBuffer(200);
+      const errBuffer = new LogRingBuffer(200);
+
+      // Read streams in chunks
+      const stdoutReader = proc.stdout.getReader();
+      const stderrReader = proc.stderr.getReader();
+      const decoder = new TextDecoder();
+
+      const readStdout = async () => {
+        while (true) {
+          const { done, value } = await stdoutReader.read();
+          if (done) break;
+          outBuffer.write(decoder.decode(value));
+        }
+      };
+
+      const readStderr = async () => {
+        while (true) {
+          const { done, value } = await stderrReader.read();
+          if (done) break;
+          errBuffer.write(decoder.decode(value));
+        }
+      };
+
+      // Run stream readers concurrently
+      await Promise.all([readStdout(), readStderr()]);
       const exitCode = await proc.exited;
 
+      const stdoutText = outBuffer.read();
+      const stderrText = errBuffer.read();
+
       const output = [
-        stdout ? stdout : "",
-        stderr ? `[STDERR]\n${stderr}` : ""
+        stdoutText ? stdoutText : "",
+        stderrText ? `[STDERR]\n${stderrText}` : ""
       ].filter(Boolean).join("\n");
 
       return {
