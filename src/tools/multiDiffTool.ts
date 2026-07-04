@@ -60,10 +60,10 @@ export const applyMultiDiffTool = createTool({
       }
 
       // 4. Run validation loop (compile or tests check)
-      // Check if bun build/test command works
+      // Check if bun build command works
       const isWindows = process.platform === "win32";
       const shell = isWindows ? "powershell.exe" : "bash";
-      const validateCmdArgs = isWindows ? ["-Command", "bun test"] : ["-c", "bun test"];
+      const validateCmdArgs = isWindows ? ["-Command", "bun run build"] : ["-c", "bun run build"];
 
       const proc = Bun.spawn({
         cmd: [shell, ...validateCmdArgs],
