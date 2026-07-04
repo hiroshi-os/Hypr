@@ -11,6 +11,24 @@ import { scheduleTasksTool, updateTaskStatusTool, globalScheduler } from "./stat
 import { loadProjectDirectives } from "./config/directives.ts";
 import { ChatMessage, InteractiveInput, PermissionPrompt, Sidebar, WelcomeLogo } from "./ui/Canvas.tsx";
 
+// TTY alternate screen buffer switching sequences
+process.stdout.write("\x1b[?1049h"); // enter alternate buffer
+process.stdout.write("\x1bc");       // clear screen
+
+const cleanupTTY = () => {
+  process.stdout.write("\x1b[?1049l"); // restore main screen buffer
+};
+
+process.on("exit", cleanupTTY);
+process.on("SIGINT", () => {
+  cleanupTTY();
+  process.exit(0);
+});
+process.on("SIGTERM", () => {
+  cleanupTTY();
+  process.exit(0);
+});
+
 const toolsList = [
   readFileTool,
   writeFileTool,
@@ -31,6 +49,10 @@ const HyprApp: React.FC = () => {
   const [currentToolProgress, setCurrentToolProgress] = React.useState("");
   const [tasks, setTasks] = React.useState(globalScheduler.getTasks());
   const [rulesFound, setRulesFound] = React.useState(false);
+  const [dimensions, setDimensions] = React.useState({
+    rows: process.stdout.rows || 24,
+    columns: process.stdout.columns || 80
+  });
 
   const stateRef = React.useRef<ConversationState>(new ConversationState());
   const permissionResolverRef = React.useRef<((allowed: boolean) => void) | null>(null);
@@ -47,6 +69,15 @@ const HyprApp: React.FC = () => {
   );
 
   React.useEffect(() => {
+    const handleResize = () => {
+      process.stdout.write("\x1bc"); // clear TTY screen boundaries to prevent tearing
+      setDimensions({
+        rows: process.stdout.rows || 24,
+        columns: process.stdout.columns || 80
+      });
+    };
+    process.stdout.on("resize", handleResize);
+
     const directives = loadProjectDirectives();
     let sysPrompt = "You are Hypr, a powerful CLI agentic coding assistant designed to solve developer tasks.\n" +
       "You have direct access to the filesystem and system execution. Work step-by-step to complete the task.\n";
@@ -58,10 +89,20 @@ const HyprApp: React.FC = () => {
     
     stateRef.current.setSystemPrompt(sysPrompt);
     setMessages(stateRef.current.getMessages());
+
+    return () => {
+      process.stdout.off("resize", handleResize);
+    };
   }, []);
 
   const handleUserInput = async (text: string) => {
     if (status !== "idle") return;
+
+    // Quit command handler
+    if (text.trim().toLowerCase() === "exit" || text.trim().toLowerCase() === "quit") {
+      cleanupTTY();
+      process.exit(0);
+    }
 
     const userMsg: Message = { role: "user", content: text };
     stateRef.current.addMessage(userMsg);
@@ -136,7 +177,6 @@ const HyprApp: React.FC = () => {
                 is_error: res.isError
               });
               
-              // Keep scheduler state fresh in UI
               setTasks(globalScheduler.getTasks());
             }
 
@@ -174,7 +214,7 @@ const HyprApp: React.FC = () => {
                     provider === "gemini" ? "Gemini 2.5 Flash" : "GPT-5.2 Codex";
 
   return (
-    <Box flexDirection="row" width="100%">
+    <Box flexDirection="row" width={dimensions.columns} height={dimensions.rows} padding={1}>
       {/* Left Chat Pane (65% width equivalent) */}
       <Box flexDirection="column" width="65%" paddingRight={2}>
         {messages.length === 0 && <WelcomeLogo />}
@@ -187,13 +227,13 @@ const HyprApp: React.FC = () => {
 
         {status === "thinking" && (
           <Box marginY={1}>
-            <Text color="yellow" bold>⏳ Thinking...</Text>
+            <Text color="gray" italic>⏳ Thinking...</Text>
           </Box>
         )}
 
         {status === "executing_tool" && (
           <Box marginY={1}>
-            <Text color="blue" bold>⚙️ {currentToolProgress}</Text>
+            <Text color="gray" dimColor>⚙️ {currentToolProgress}</Text>
           </Box>
         )}
 
