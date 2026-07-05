@@ -1,0 +1,51 @@
+---
+title: "Plugin Viewport"
+description: "How plugin events surface inside the OpenTUI sidebar without disrupting the primary dual-column layout"
+---
+
+When plugins are active, Hypr reserves a dedicated **Plugin Events** pane inside the right-side context sidebar. This gives you real-time visibility into what your extensions are doing — which hooks fired, which plugins ran, and whether any call was blocked — without interfering with the primary chat and task layout.
+
+## Layout Position
+
+The Plugin Events pane appears in the sidebar below the task list, above the session footer. It is rendered only when at least one hook invocation has occurred in the current session:
+
+```
+┌─────────────────────────────────────────────┐
+│  Context                                    │
+│  20,674 tokens · 0% used · $0.00            │
+│                                             │
+│  Tasks                                      │
+│  ▶ Refactor authentication module           │
+│  ● Write unit tests                         │
+│                                             │
+│  Plugin Events              ← new           │
+│  ✓ [audit-logger] beforeToolCall            │
+│  ✓ [audit-logger] afterToolCall             │
+│  ⛔ [security-guard] beforeToolCall          │
+│                                             │
+│  ~/project · Hypr 4.0.0                     │
+└─────────────────────────────────────────────┘
+```
+
+## Event Colours
+
+| Icon | Colour | Meaning |
+|---|---|---|
+| `✓` | Green `#6dcf81` | Hook ran and returned `{ proceed: true }` or passed through |
+| `⛔` | Red `#e85b4a` | Hook returned `{ proceed: false }` — tool call was blocked |
+
+## Bounds Locking
+
+The sidebar pane is rendered inside the OpenTUI native Zig layout engine. Plugin log content is bounded to its allocated sub-region — it cannot overflow into the main chat scroll buffer or cause layout tearing even if many events fire in rapid succession.
+
+Only the **last 6 events** are displayed in the sidebar at any time. The full event history (last 100 events) is always available via [`generate_diagnostic_bundle`](/tools/diagnostic-tool).
+
+## Clearing the Log
+
+The plugin event log is session-scoped and clears when Hypr exits. To clear it mid-session without exiting:
+
+```typescript
+globalPluginManager.clearLogs();
+```
+
+This is not currently exposed as an agent tool but can be called programmatically from custom integrations.

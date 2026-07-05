@@ -1,6 +1,7 @@
 import * as React from "react";
 import { TaskNode } from "../state/scheduler.ts";
 import { Message, ContentBlock } from "../state/engine.ts";
+import { PluginLog } from "../plugins/manager.ts";
 
 export interface SidebarProps {
   tasks: TaskNode[];
@@ -8,9 +9,10 @@ export interface SidebarProps {
   provider: string;
   cwd: string;
   rulesFound: boolean;
+  pluginLogs?: PluginLog[];
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ tasks, modelName, provider, cwd, rulesFound }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ tasks, modelName, provider, cwd, rulesFound, pluginLogs }) => {
   return (
     <box 
       flexDirection="column" 
@@ -49,6 +51,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ tasks, modelName, provider, cw
               <text key={t.id} fg="gray">  {icon} {t.title}</text>
             );
           })}
+        </box>
+      )}
+
+      {pluginLogs && pluginLogs.length > 0 && (
+        <box flexDirection="column" marginBottom={1}>
+          <text fg="white" style={{ weight: "bold" }}>Plugin Events</text>
+          {pluginLogs.slice(0, 6).map((log, i) => (
+            <text key={i} fg={log.blocked ? "#e85b4a" : "#6dcf81"}>
+              {log.blocked ? "⛔" : "✓"} [{log.plugin}] {log.hook}
+            </text>
+          ))}
         </box>
       )}
 

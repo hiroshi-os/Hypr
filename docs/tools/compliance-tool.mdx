@@ -1,0 +1,64 @@
+---
+title: "scan_compliance_rules"
+description: "Scan a project directory for exposed secrets, private keys, and vulnerable file patterns before initializing an LLM context pool"
+---
+
+`scan_compliance_rules` is a read-only tool that walks a project directory tree and identifies files or content patterns that could result in secret exfiltration if included in an LLM context window.
+
+Run it at the start of a session on any unfamiliar codebase, or wire it into your `.hypr/rules.md` as a startup directive.
+
+## Usage
+
+```
+Please scan the current project for compliance issues before we start.
+```
+
+Hypr resolves the tool call and returns a structured finding report:
+
+```
+Compliance scan of /home/user/project
+Found 3 issue(s) — 2 high severity
+
+[HIGH] /home/user/project/.env
+  → Contains 1x openai_key, 1x env_secret
+
+[HIGH] /home/user/project/deploy/service-account.json
+  → Risky filename: service-account.json
+
+[HIGH] /home/user/project/keys/deploy.pem
+  → Risky extension: .pem
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `directory` | `string` | ✓ | Absolute or relative path to scan |
+| `maxDepth` | `number` | — | Directory recursion depth (default: `4`) |
+
+## What It Detects
+
+**Risky filenames** — files whose names are unconditionally flagged regardless of content:
+
+`.env`, `.env.local`, `.env.production`, `.env.development`, `id_rsa`, `id_ed25519`, `credentials`, `secrets.json`, `service-account.json`, `terraform.tfvars`
+
+**Risky extensions** — file types that are structurally credential containers:
+
+`.pem`, `.key`, `.p12`, `.pfx`, `.cer`
+
+**Content scanning** — for readable files under 256KB, the full [compliance scrubber](/privacy/compliance-scrubbing) pattern suite runs against the file contents. Files that match any pattern are flagged with the rule name and match count.
+
+Binary files, files over 256KB, and `.git/` directories are skipped automatically.
+
+## Severity Levels
+
+All current findings are reported at `HIGH` severity. Future releases will introduce `MEDIUM` (e.g. world-readable permission bits, lockfile integrity drift) and `LOW` (e.g. TODO comments containing placeholder credentials) tiers.
+
+## Exclusions
+
+`node_modules/` and `.git/` directories are excluded from all scans. Add project-specific exclusion patterns via `.hypr/rules.md`:
+
+```md
+## Compliance Exclusions
+Do not scan the `fixtures/` directory — it contains intentional test credential stubs.
+```

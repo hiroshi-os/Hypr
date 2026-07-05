@@ -1,0 +1,127 @@
+---
+title: "Plugin Architecture"
+description: "How Hypr's hook-based lifecycle plugin system works — sandbox isolation, event registration, and the plugin manifest schema"
+---
+
+Hypr's plugin system lets you extend the agent's behaviour at key points in the execution pipeline without modifying the core binary. Plugins are isolated, typed, and subject to strict safety boundaries that prevent any extension from reaching the host shell or filesystem.
+
+## The Plugin Manifest
+
+Every Hypr plugin exports a typed manifest:
+
+```typescript
+interface HyprPlugin {
+  meta: {
+    name: string;
+    version: string;
+  };
+  hooks: {
+    beforeToolCall?: (context: ToolContext) => Promise<{ proceed: boolean; error?: string }>;
+    afterToolCall?: (result: ToolResult) => Promise<ToolResult>;
+    transformPrompt?: (prompt: string) => Promise<string>;
+  };
+}
+```
+
+Plugins register themselves against the `HyprPluginAPI` surface provided by the sandbox runtime:
+
+```javascript
+// my-plugin.js
+Hypr.register({
+  meta: { name: "audit-logger", version: "1.0.0" },
+  hooks: {
+    beforeToolCall: async (ctx) => {
+      console.log(`[audit] tool called: ${ctx.tool}`);
+      return { proceed: true };
+    },
+    afterToolCall: async (result) => {
+      return result; // pass through unchanged
+    }
+  }
+});
+```
+
+## Hook Reference
+
+### `beforeToolCall`
+
+Fires **before** a tool is executed. Receives the tool name and its resolved input parameters.
+
+Returning `{ proceed: false }` **blocks the tool call entirely** — the agent receives an error result and the blocked event is logged to the Plugin Events sidebar pane.
+
+```typescript
+beforeToolCall: async (ctx: { tool: string; input: Record<string, any> }) => {
+  if (ctx.tool === "execute_bash" && ctx.input.command?.includes("rm -rf")) {
+    return { proceed: false, error: "Destructive bash patterns are blocked by policy" };
+  }
+  return { proceed: true };
+}
+```
+
+### `afterToolCall`
+
+Fires **after** a tool completes, receiving the raw `ToolResult`. You can transform, annotate, or log the result — then return it (possibly modified) for the agent to consume.
+
+```typescript
+afterToolCall: async (result: { content: string; isError: boolean }) => {
+  // Stamp all tool outputs with a trace ID
+  return { ...result, content: `[trace:abc123] ${result.content}` };
+}
+```
+
+### `transformPrompt`
+
+Fires on each user message before it enters the agent loop. Useful for injecting project context, normalising phrasing, or enforcing conversation constraints.
+
+```typescript
+transformPrompt: async (prompt: string) => {
+  return `[Project: Hypr] ${prompt}`;
+}
+```
+
+## Sandbox Isolation
+
+Plugins run inside a **Bun Worker thread** with no access to:
+
+- Host filesystem (`fs`, `Bun.file`)
+- Process control (`process.exit`, `process.env`)
+- Shell execution (`Bun.spawn`, `exec`, `execSync`)
+- Network (no `fetch` from within the worker)
+
+Plugin code is evaluated using `new Function()` scoped to the sandbox — it receives only the `Hypr` registration API object. All communication with the core happens through structured `postMessage` channels.
+
+Any attempt to reach outside the sandbox boundary either fails silently (unavailable globals) or throws an error that propagates out through the hook call — which the plugin manager catches and logs without crashing the core binary.
+
+### Timeout Enforcement
+
+Each hook invocation has a **2-second timeout**. If a plugin's hook does not resolve within that window, the pending call is rejected with a `timed out` error and execution continues normally. This prevents a frozen plugin from stalling the agent loop indefinitely.
+
+## Plugin Lifecycle
+
+```
+register_extension({ pluginPath: "./plugins/audit-logger.js" })
+  → Plugin file read from disk
+  → Bun Worker spawned with sandbox source
+  → Plugin bootstrapped via postMessage("bootstrap", code)
+  → Worker signals ready
+  → Plugin registered in PluginManager map
+```
+
+From that point forward, every tool call in the session passes through the registered hook chain in registration order.
+
+## Multiple Plugins
+
+Multiple plugins can be loaded simultaneously. Hook calls fire sequentially across all loaded plugins. If any plugin in the `beforeToolCall` chain returns `{ proceed: false }`, the chain short-circuits — subsequent plugins for that hook are not called.
+
+```
+Plugin A: beforeToolCall → { proceed: true }   ✓ continues
+Plugin B: beforeToolCall → { proceed: false }  ⛔ blocked — Plugin C never fires
+```
+
+## Unloading Plugins
+
+```
+Unload the audit-logger plugin.
+```
+
+Hypr calls `globalPluginManager.unregister("audit-logger")`, which terminates the Worker and removes it from the hook chain. The core binary continues running normally.

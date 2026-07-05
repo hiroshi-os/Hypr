@@ -31,25 +31,35 @@
     },
     {
       "tab": "Tools & Plugins"
+    },
+    {
+      "tab": "Privacy & Compliance"
+    },
+    {
+      "tab": "Blog"
     }
   ],
   "navigation": {
     "groups": [
       {
         "tab": "Get Started",
-        "group": "Overview",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      },
-      {
-        "tab": "Get Started",
-        "group": "Release Blog",
-        "pages": [
-          "blog/core-shell-loop",
-          "blog/task-trees-and-refactoring",
-          "blog/native-zig-performance-and-mcp"
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "index",
+              "quickstart",
+              "features"
+            ]
+          },
+          {
+            "group": "Release Blog",
+            "pages": [
+              "blog/core-shell-loop",
+              "blog/task-trees-and-refactoring",
+              "blog/native-zig-performance-and-mcp"
+            ]
+          }
         ]
       },
       {
@@ -70,17 +80,53 @@
       },
       {
         "tab": "Tools & Plugins",
-        "group": "Built-In Tooling",
-        "pages": [
-          "tools/file-tools",
-          "tools/bash-interceptor"
+        "groups": [
+          {
+            "group": "Built-In Tooling",
+            "pages": [
+              "tools/file-tools",
+              "tools/bash-interceptor",
+              "tools/compliance-tool",
+              "tools/diagnostic-tool"
+            ]
+          },
+          {
+            "group": "Plugin System",
+            "pages": [
+              "plugins/architecture",
+              "plugins/register-extension",
+              "plugins/plugin-viewport"
+            ]
+          },
+          {
+            "group": "Protocols",
+            "pages": [
+              "integrations/mcp"
+            ]
+          }
         ]
       },
       {
-        "tab": "Tools & Plugins",
-        "group": "Protocols",
-        "pages": [
-          "integrations/mcp"
+        "tab": "Privacy & Compliance",
+        "groups": [
+          {
+            "group": "Data Guardrails",
+            "pages": [
+              "privacy/compliance-scrubbing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Blog",
+        "groups": [
+          {
+            "group": "Engineering Notes",
+            "pages": [
+              "blog/index",
+              "blog/zero-trust-execution"
+            ]
+          }
         ]
       }
     ]

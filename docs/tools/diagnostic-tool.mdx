@@ -1,0 +1,86 @@
+---
+title: "generate_diagnostic_bundle"
+description: "Pack active task state, plugin event logs, and memory metrics into a structured markdown report for offline developer review"
+---
+
+`generate_diagnostic_bundle` produces a point-in-time snapshot of Hypr's internal execution state as a structured markdown file. Use it to understand what the agent was doing when something unexpected occurred, audit plugin activity, or capture baseline memory metrics before a long session.
+
+Everything stays local. Nothing is sent externally.
+
+## Usage
+
+```
+Generate a diagnostic bundle for this session.
+```
+
+```
+generate_diagnostic_bundle({ outputPath: "./debug/session-report.md" })
+```
+
+If no `outputPath` is specified, the report is written to the working directory with a timestamp filename:
+
+```
+hypr-diagnostic-2026-07-05T08-22-00-000Z.md
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `outputPath` | `string` | — | Custom output path (defaults to `./hypr-diagnostic-<timestamp>.md`) |
+
+## Report Structure
+
+The generated report contains four sections:
+
+### Active Tasks
+
+All task nodes currently tracked by the scheduler, with their status and ID:
+
+```markdown
+## Active Tasks (3)
+
+- **[RUNNING]** Refactor authentication module (id: `task_a1b2`)
+- **[COMPLETED]** Write unit tests for parser (id: `task_c3d4`)
+- **[PENDING]** Update API documentation (id: `task_e5f6`)
+```
+
+### Loaded Plugins
+
+All plugins currently provisioned in the sandbox, with version and load time:
+
+```markdown
+## Loaded Plugins (1)
+
+- **audit-logger** v1.0.0 — loaded at 2026-07-05T08:15:33.421Z
+```
+
+### Plugin Event Log
+
+A timestamped table of the last 50 hook invocations across all plugins — useful for auditing which plugins fired, on which hooks, and whether any blocked a tool call:
+
+```markdown
+| Timestamp | Plugin | Hook | Blocked | Message |
+| --- | --- | --- | --- | --- |
+| 2026-07-05T08:20:11.000Z | audit-logger | beforeToolCall | ✓ No | |
+| 2026-07-05T08:20:14.000Z | security-guard | beforeToolCall | ⛔ YES | Unauthorized bash pattern detected |
+```
+
+### Memory Snapshot
+
+Live heap and RSS metrics at the moment of bundle generation:
+
+```markdown
+| Metric | Value |
+| --- | --- |
+| Heap Used | 42.18 MB |
+| Heap Total | 67.50 MB |
+| RSS | 118.33 MB |
+| External | 3.02 MB |
+```
+
+## When to Use It
+
+- **After an unexpected agent halt** — check the task list for stuck `RUNNING` nodes and the plugin log for a blocking hook event
+- **After loading a new plugin** — confirm it registered and inspect its first hook invocations
+- **Before filing a bug report** — attach the bundle for full session context without including any sensitive data (the report does not include message history or file contents)

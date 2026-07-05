@@ -1,0 +1,141 @@
+---
+title: "Zero-Trust Execution: Secrets Scrubbing, Sandboxed Plugins, and Compliance at the Transport Layer"
+description: "How Hypr hardens its execution boundary with streaming PII redaction, isolated worker-based extensions, and enterprise-grade diagnostic tooling"
+---
+
+import { Callout } from 'mintlify/components'
+
+The hardest problem in agentic developer tooling isn't building the agent. It's deciding what the agent is **not allowed to touch**.
+
+Every time an LLM sends a message back through the API, every time a tool is executed against a user's filesystem — that's a decision point with real consequences. Hypr's latest iteration attacks this directly: a dedicated compliance transport layer, a sandboxed extension runtime, and diagnostic tooling that gives you complete visibility into what your agent is doing and why.
+
+---
+
+## The Outbound Trust Gap
+
+Most agentic CLIs trust their message pipeline implicitly. You write a prompt, the agent formulates a response, that response — including any context it may have read from your working directory — travels outbound to a remote LLM endpoint.
+
+The problem: **your codebase is the context window**. And codebases contain secrets.
+
+`.env` files, hardcoded API tokens, `terraform.tfvars`, service account JSONs. The LLM reads these files because they're referenced in your task. Then those strings appear verbatim in the conversation messages it ships to the inference provider.
+
+Hypr now intercepts this at the transport layer — before `sendRequest()` dispatches to any provider:
+
+```typescript
+const { messages: safeMessages, totalHits } = scrubMessages(messages);
+if (totalHits > 0) {
+  process.stderr.write(`[scrubber] Redacted ${totalHits} secret(s) from outbound payload\n`);
+}
+```
+
+Every string leaf in the message tree is walked. Ten pattern rules fire in sequence — AWS access keys, OpenAI/Anthropic API tokens, GitHub PATs, raw SSH private keys, `.env`-style assignments, connection strings, and local absolute paths.
+
+Matches aren't deleted. They're replaced with **deterministic SHA-256 hashes**:
+
+```
+AKIAIOSFODNN7EXAMPLE → [REDACTED:AWS_ACCESS_KEY:d4e2f0a1b3c7]
+```
+
+The same secret always produces the same hash — so if a scrubbed token appears twice, the LLM still sees a coherent, consistent placeholder. Redaction without corruption.
+
+Benchmarked against a 15,000-token synthetic payload with injected seed secrets across all rule categories: **median scrub time: 6ms**. Well inside the 40ms acceptance threshold.
+
+---
+
+## Plugins Without Permissions
+
+Extensions are essential for an agentic platform to be useful beyond its initial scope. They're also the most obvious attack vector.
+
+The naive approach — require plugins and execute them in-process — means a malicious or buggy extension gets full access to your shell, your filesystem, and your environment variables the moment it loads.
+
+Hypr's plugin runtime takes the opposite approach. Every plugin runs inside a **Bun Worker thread**:
+
+```typescript
+const blob = new Blob([SANDBOX_WORKER_SRC], { type: "application/javascript" });
+const url = URL.createObjectURL(blob);
+this.worker = new Worker(url, { name: `hypr-plugin:${pluginName}` });
+```
+
+The worker context has no `fs`, no `Bun.spawn`, no `process.exit`, no direct shell surface. Plugin code is evaluated inside a scoped `new Function()` call that receives exactly one argument — the `HyprPluginAPI` registration object.
+
+Plugins interact with the core through a typed hook manifest:
+
+```typescript
+interface HyprPlugin {
+  meta: { name: string; version: string };
+  hooks: {
+    beforeToolCall?: (context: ToolContext) => Promise<{ proceed: boolean; error?: string }>;
+    afterToolCall?: (result: ToolResult) => Promise<ToolResult>;
+    transformPrompt?: (prompt: string) => Promise<string>;
+  };
+}
+```
+
+`beforeToolCall` is the enforcement layer. If any loaded plugin returns `{ proceed: false }`, the tool call is blocked before execution, a warning is surfaced in the sidebar pane, and the agent receives a structured error back through the tool result channel — without the binary crashing, without an uncaught exception leaking to stdout.
+
+A 2-second per-hook timeout kills any unresponsive plugin before it can stall the main execution loop.
+
+---
+
+## Compliance Scanning Before Context Load
+
+Before Hypr initializes an LLM context pool on a new project, the `scan_compliance_rules` tool can sweep the working directory:
+
+```
+scan_compliance_rules({ directory: "./", maxDepth: 4 })
+```
+
+The scanner walks the tree, checking filenames against a known-risky set (`.env`, `id_rsa`, `credentials`, `service-account.json`, `.pfx`), flagging dangerous extensions (`.pem`, `.key`), and running the full scrubber pattern suite against readable file contents under 256KB.
+
+Findings come back structured, severity-ranked, and immediately actionable:
+
+```
+[HIGH] /project/.env
+  → Contains 2x env_secret, 1x openai_key
+
+[HIGH] /project/deploy/terraform.tfvars
+  → Risky filename: terraform.tfvars
+```
+
+No secrets leave the machine. No secrets enter the context. The scan runs entirely locally.
+
+---
+
+## Observability Without the Noise
+
+The `generate_diagnostic_bundle` tool addresses one of the most common frustrations in agentic tooling: **when something goes wrong mid-session, where do you even start?**
+
+One call produces a structured markdown report:
+
+- All active task nodes with their current scheduler status
+- Every loaded plugin and when it was provisioned into the sandbox
+- A timestamped event log of hook invocations — which plugin ran, which hook, whether it blocked, and why
+- A live memory snapshot (heap used, heap total, RSS, external)
+
+The report writes to a local file. Nothing external. Fully offline-reviewable.
+
+---
+
+## Sidebar Visibility
+
+The OpenTUI sidebar now carries a live **Plugin Events** pane alongside the task list. Each hook invocation renders inline as it fires:
+
+```
+✓ [audit-logger] beforeToolCall
+✓ [audit-logger] afterToolCall
+⛔ [security-guard] beforeToolCall
+```
+
+Blocked events render in red. The primary dual-column dashboard layout is unaffected — the plugin pane uses native Zig bounds locking to reserve its sub-region without disturbing the chat scroll buffer.
+
+---
+
+## What This Enables
+
+Air-gapped enterprise deployments can set `HYPR_TELEMETRY=false` at compile time and run Hypr with complete confidence that no operational data — and no accidentally-included credential — ever reaches an external endpoint.
+
+Plugin authors can build rich, lifecycle-aware extensions with full hook access to the tool pipeline, knowing those extensions run in a contained environment that cannot reach the host shell regardless of what code they attempt to execute.
+
+And operators get full diagnostic visibility into session state, memory, and extension behavior — all as a local markdown file, any time they need it.
+
+The execution boundary is no longer implicit. It's enforced at the transport layer, the sandbox boundary, and the hook chain simultaneously.

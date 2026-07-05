@@ -1,5 +1,6 @@
 import { ToolDef } from "../tools/index.ts";
 import { Message, ContentBlock } from "../state/engine.ts";
+import { scrubMessages } from "../privacy/scrubber.ts";
 
 export interface LLMResponse {
   content: string | ContentBlock[];
@@ -84,15 +85,21 @@ export class LLMClient {
     messages: Message[],
     tools: ToolDef[]
   ): Promise<LLMResponse> {
+    // ── Compliance scrubbing: strip PII/secrets before they leave the host ──
+    const { messages: safeMessages, totalHits } = scrubMessages(messages);
+    if (totalHits > 0) {
+      process.stderr.write(`[scrubber] Redacted ${totalHits} secret(s) from outbound payload\n`);
+    }
+
     if (this.provider === "mock") {
-      return this.generateMockResponse(messages);
+      return this.generateMockResponse(safeMessages as Message[]);
     }
 
     if (this.provider === "anthropic") {
-      return this.sendAnthropicRequest(systemPrompt, messages, tools);
+      return this.sendAnthropicRequest(systemPrompt, safeMessages as Message[], tools);
     }
 
-    return this.sendGeminiRequest(systemPrompt, messages, tools);
+    return this.sendGeminiRequest(systemPrompt, safeMessages as Message[], tools);
   }
 
   private async sendAnthropicRequest(

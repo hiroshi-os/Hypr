@@ -10,6 +10,10 @@ import { viewCodeOutlineTool } from "./tools/outlineTool.ts";
 import { applyMultiDiffTool } from "./tools/multiDiffTool.ts";
 import { scheduleTasksTool, updateTaskStatusTool, globalScheduler } from "./state/scheduler.ts";
 import { connectMcpServerTool, dynamicMcpTools } from "./tools/mcpTool.ts";
+import { scanComplianceTool } from "./tools/complianceTool.ts";
+import { registerExtensionTool } from "./tools/extensionTool.ts";
+import { generateDiagnosticBundleTool } from "./tools/diagnosticTool.ts";
+import { globalPluginManager, PluginLog } from "./plugins/manager.ts";
 import { loadProjectDirectives } from "./config/directives.ts";
 import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo } from "./ui/Canvas.tsx";
 
@@ -24,7 +28,11 @@ const toolsList = [
   applyMultiDiffTool,
   scheduleTasksTool,
   updateTaskStatusTool,
-  connectMcpServerTool
+  connectMcpServerTool,
+  // Phase 4: Platform hardening tools
+  scanComplianceTool,
+  registerExtensionTool,
+  generateDiagnosticBundleTool,
 ];
 
 const HyprApp: React.FC = () => {
@@ -34,6 +42,7 @@ const HyprApp: React.FC = () => {
   const [currentToolProgress, setCurrentToolProgress] = React.useState("");
   const [tasks, setTasks] = React.useState(globalScheduler.getTasks());
   const [rulesFound, setRulesFound] = React.useState(false);
+  const [pluginLogs, setPluginLogs] = React.useState<PluginLog[]>([]);
 
   const stateRef = React.useRef<ConversationState>(new ConversationState());
   const permissionResolverRef = React.useRef<((allowed: boolean) => void) | null>(null);
@@ -125,6 +134,21 @@ const HyprApp: React.FC = () => {
               setStatus("executing_tool");
               setCurrentToolProgress(`Verifying permissions for ${tool.name}...`);
               const allowed = await gateRef.current.check(tool, call.input);
+
+              // ── Phase 4: beforeToolCall lifecycle hook ──────────────────
+              const hookResult = await globalPluginManager.runHook("beforeToolCall", { tool: tool.name, input: call.input });
+              setPluginLogs(globalPluginManager.getLogs());
+
+              if (!hookResult.proceed) {
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: call.id,
+                  content: `Blocked by plugin: ${hookResult.blocked}`,
+                  is_error: true
+                });
+                continue;
+              }
+              // ──────────────────────────────────────────────────────────
               
               if (!allowed) {
                 toolResults.push({
@@ -138,11 +162,17 @@ const HyprApp: React.FC = () => {
 
               setCurrentToolProgress(`Executing ${tool.name}...`);
               const res = await tool.execute(call.input);
+
+              // ── Phase 4: afterToolCall lifecycle hook ───────────────────
+              const { payload: finalResult } = await globalPluginManager.runHook("afterToolCall", res);
+              setPluginLogs(globalPluginManager.getLogs());
+              // ──────────────────────────────────────────────────────────
+
               toolResults.push({
                 type: "tool_result",
                 tool_use_id: call.id,
-                content: res.content,
-                is_error: res.isError
+                content: finalResult.content ?? res.content,
+                is_error: finalResult.isError ?? res.isError
               });
               
               setTasks(globalScheduler.getTasks());
@@ -224,12 +254,13 @@ const HyprApp: React.FC = () => {
 
       {/* Right pane — context sidebar */}
       <box width="35%">
-        <Sidebar
+      <Sidebar
           tasks={tasks}
           modelName={modelName}
           provider={provider}
           cwd={process.cwd()}
           rulesFound={rulesFound}
+          pluginLogs={pluginLogs}
         />
       </box>
     </box>
