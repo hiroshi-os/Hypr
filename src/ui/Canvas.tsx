@@ -12,7 +12,14 @@ export interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ tasks, modelName, provider, cwd, rulesFound }) => {
   return (
-    <box flexDirection="column" paddingLeft={2} paddingTop={1} height="100%">
+    <box 
+      flexDirection="column" 
+      paddingLeft={2} 
+      paddingRight={2}
+      paddingTop={1} 
+      height="100%"
+      backgroundColor="#121214"
+    >
       <box flexDirection="column" marginBottom={1}>
         <text fg="white">Go CLI for agentic</text>
         <text fg="white">development tasks</text>
@@ -114,7 +121,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           return <text key={idx} fg="white">{block.text}</text>;
         } else if (block.type === "tool_use") {
           return (
-            <box key={idx} flexDirection="column" marginTop={1}>
+            <box key={idx} flexDirection="column" marginTop={1} padding={1} backgroundColor="#1a1a1e">
               <text fg="#e8a838" style={{ weight: "bold" }}>{block.name}</text>
               <text fg="gray">{JSON.stringify(block.input, null, 2)}</text>
             </box>
@@ -122,7 +129,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         } else if (block.type === "tool_result") {
           const truncated = block.content.length > 300 ? block.content.slice(0, 300) + "..." : block.content;
           return (
-            <box key={idx} flexDirection="column" marginTop={1}>
+            <box key={idx} flexDirection="column" marginTop={1} padding={1} backgroundColor="#1a1a1e">
               <text fg={block.is_error ? "red" : "green"} style={{ weight: "bold" }}>
                 {block.is_error ? "Error" : "Done"}
               </text>
@@ -151,8 +158,15 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({ onSubmit, mo
 
   return (
     <box flexDirection="column" width="100%">
-      {/* Input area with left cyan accent bar */}
-      <box flexDirection="row" paddingY={1} width="100%">
+      {/* Input area with left cyan accent bar and flat zinc bg */}
+      <box 
+        flexDirection="row" 
+        paddingY={1} 
+        paddingLeft={1}
+        paddingRight={1}
+        width="100%" 
+        backgroundColor="#18181b"
+      >
         <text fg="cyan">│ </text>
         <box flexDirection="column" flexGrow={1}>
           <input
@@ -215,8 +229,15 @@ export const SessionInput: React.FC<SessionInputProps> = ({ onSubmit, modelName,
         </box>
       )}
 
-      {/* Compact input */}
-      <box flexDirection="row" paddingY={1} width="100%">
+      {/* Compact input with left cyan accent bar and flat zinc bg */}
+      <box 
+        flexDirection="row" 
+        paddingY={1} 
+        paddingLeft={1}
+        paddingRight={1}
+        width="100%" 
+        backgroundColor="#18181b"
+      >
         <text fg="cyan">│ </text>
         <box flexGrow={1}>
           <input
@@ -229,7 +250,7 @@ export const SessionInput: React.FC<SessionInputProps> = ({ onSubmit, modelName,
       </box>
 
       {/* Bottom status bar */}
-      <box flexDirection="row">
+      <box flexDirection="row" marginTop={1}>
         <text fg="green">Build</text>
         <text fg="gray">  {modelName} llama.cpp (hosted)</text>
       </box>
@@ -243,7 +264,6 @@ export interface PermissionPromptProps {
 }
 
 export const PermissionPrompt: React.FC<PermissionPromptProps> = ({ message, onDecision }) => {
-  // Setup keyboard events for permission prompt
   React.useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "y" || e.key === "Y") {
@@ -259,7 +279,7 @@ export const PermissionPrompt: React.FC<PermissionPromptProps> = ({ message, onD
   }, [onDecision]);
 
   return (
-    <box flexDirection="column" paddingLeft={2} paddingY={1}>
+    <box flexDirection="column" paddingLeft={2} paddingY={1} backgroundColor="#1e1313">
       <text fg="#e8a838" style={{ weight: "bold" }}>Allow this action?</text>
       <text fg="white">{message}</text>
       <box marginTop={1} flexDirection="row">
