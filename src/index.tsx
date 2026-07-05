@@ -216,11 +216,13 @@ const HyprApp: React.FC = () => {
   // Welcome screen: centered logo + input, no sidebar
   if (!hasSession && status === "idle") {
     return (
-      <box flexDirection="column" width="100%" height="100%" alignItems="center" justifyContent="center">
+      <box flexDirection="column" width="100%" height="100%" alignItems="center">
+        <box flexGrow={1} />
         <WelcomeLogo />
-        <box width={60}>
+        <box width={85} marginBottom={4}>
           <InteractiveInput onSubmit={handleUserInput} modelName={modelName} />
         </box>
+        <box flexGrow={2} />
       </box>
     );
   }
@@ -228,9 +230,9 @@ const HyprApp: React.FC = () => {
   // Active session: two-column flat layout
   return (
     <box flexDirection="row" width="100%" height="100%">
-      {/* Left pane — chat + input */}
-      <box flexDirection="column" width="65%" paddingLeft={1} paddingTop={1}>
-        <box flexDirection="column" flexGrow={1}>
+      {/* Left Column: Chat Stream & Active Input Bar */}
+      <box flexDirection="column" width="75%" paddingRight={4}>
+        <box flexDirection="column" flexGrow={1} overflowY="scroll">
           {messages.map((msg, i) => (
             <ChatMessage key={i} message={msg} />
           ))}
@@ -252,15 +254,16 @@ const HyprApp: React.FC = () => {
         )}
       </box>
 
-      {/* Right pane — context sidebar */}
-      <box width="35%">
-      <Sidebar
+      {/* Right Column: Borderless Context HUD */}
+      <box width="25%">
+        <Sidebar
           tasks={tasks}
           modelName={modelName}
           provider={provider}
           cwd={process.cwd()}
           rulesFound={rulesFound}
           pluginLogs={pluginLogs}
+          messages={messages}
         />
       </box>
     </box>
