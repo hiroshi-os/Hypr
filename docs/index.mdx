@@ -1,0 +1,18 @@
+---
+title: "Introduction"
+description: "Welcome to Hypr CLI, the high-performance agentic CLI developer companion"
+---
+
+Hypr is an open-source clone of Claude Code designed to run entirely in your terminal window. Instead of simple chat completions, Hypr acts as an autonomous agent that reads and writes codebase configurations, executes terminal tools, verifies syntax safety using rollbacks, and schedules task trees.
+
+## Features
+
+- **OpenTUI Layout Engine**: Replaces traditional JS-heavy renderers with a native Zig rendering core via FFI, providing borderless, monochrome layouts without layout tearing.
+- **Permissions Middleware**: Programmatically validates terminal executions and file edits, prompting for user override for destructive tasks.
+- **Atomic Multi-File Transactions**: Batches multiple file modifications and verifies compilation via `bun run build`. Restores original files automatically within 200ms if validation fails.
+- **Task Tree Scheduling**: Manages active checklists with priority queues, dependency resolvers, and automated self-correction loops.
+- **Model Context Protocol (MCP)**: Spawns external stdio servers and registers JSON-RPC tools dynamically.
+
+<Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+  Install pre-requisites, configure API keys, and launch Hypr in under 2 minutes.
+</Card>

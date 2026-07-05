@@ -1,0 +1,35 @@
+---
+title: "Architecture & Tools"
+description: "A deep dive into Hypr's core toolsets, permissions validation, and MCP protocol integration"
+---
+
+Hypr transitions from standard chat loops into an active workspace companion by running tools recursively under strict safety and TTY bounds.
+
+## Declarative Tools Registry
+
+All tools conform to a strict schema specification validated by **Zod**:
+
+- **File Utilities**:
+  - `read_file`: Reads specific line ranges.
+  - `write_file`: Overwrites files.
+  - `edit_file`: Atomic search-and-replace edits.
+  - `view_code_outline`: Extracts classes, structs, methods, and interface signatures across JS/TS, Python, Go, and Rust.
+- **Terminal Execution**:
+  - `execute_bash`: Captures subprocess logs via memory-isolated ring buffers, preventing scroll duplication.
+- **Task Management**:
+  - `schedule_tasks`: Adds task trees containing estimations and file dependencies to the UI scheduler panel.
+  - `update_task_status`: Transitions task status labels between `pending`, `running`, `completed`, and `failed`.
+
+## Permissions Middleware
+
+To prevent unauthorized file writes or shell command executions, Hypr uses a permission interceptor:
+
+1. **Classifier**: Checks shell commands for destructive flags (e.g. `rm`, `git push`). Safe commands (e.g. `git diff`, `bun test`) bypass verification.
+2. **Interactive Override Prompt**: Non-read-only actions prompt the user with a decision screen requesting `[y]es` or `[n]o` confirmation.
+
+## Model Context Protocol (MCP) Client
+
+Hypr implements the Model Context Protocol (MCP) to dynamically extend its capabilities:
+
+- **Connect Tool (`connect_mcp_server`)**: Connects stdio-based external MCP servers.
+- **Dynamic Zod Mapping**: Queries the server's tools schema, converts the definitions into native Zod schemas, and registers them on-the-fly. The LLM gets access to the injected tools in its next loop iteration.
