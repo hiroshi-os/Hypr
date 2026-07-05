@@ -1,0 +1,10 @@
+---
+title: "State Compaction"
+description: "Sustaining prompt context longevity through message trimming boundaries"
+---
+
+When message array sizes exceed token thresholds, the engine compacts past records to keep prompts lightweight:
+
+1. Preserves system initialization instructions and primary user queries.
+2. Strips intermediate tool payloads and replaces them with a summarized indicator.
+3. Keeps active tasks intact at the top of the context buffer.

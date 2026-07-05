@@ -1,0 +1,10 @@
+---
+title: "Model Context Protocol"
+description: "Connecting remote tools using JSON-RPC standard stdio streams"
+---
+
+Hypr implements the Model Context Protocol (MCP) spec to dynamically inject tools:
+
+- Spawns stdio server executables using `connect_mcp_server`.
+- Resolves JSON schemas from `tools/list` into native Zod configurations.
+- Executes client requests dynamically via `tools/call`.
