@@ -1,0 +1,27 @@
+---
+title: "Building the Core Shell Loop"
+date: "2026-07-03"
+description: "How we engineered the foundations of Hypr CLI, introducing immutable message state loops and schema-validated tool pipelines."
+---
+
+To replicate the performance of advanced terminal coding agents, we began by establishing a solid execution environment. The core goal was to build a system that reads, writes, and executes shell directives autonomously.
+
+## Immutable Message State Engine
+
+At the center of Hypr is an append-only conversation log representing the single source of truth. To keep the context window lightweight, we designed a dynamic compaction algorithm. When token usage crosses a warning threshold, the engine prunes past tool logs while preserving system rules, context structures, and active goals.
+
+## Schema-Validated Tools
+
+To ensure system safety, every tool is validated using Zod definitions:
+
+```typescript
+export interface ToolDef {
+  name: string;
+  description: string;
+  schema: ZodObject<any>;
+  isReadOnly: boolean;
+  execute: (args: any) => Promise<ToolResult>;
+}
+```
+
+This strict schema guarantees that the model cannot output malformed parameters. A permission gate middleware intercepts modifying actions, prompting the user for approval.
