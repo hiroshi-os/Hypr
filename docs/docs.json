@@ -1,46 +1,80 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
   "name": "Hypr CLI",
+  "description": "The sovereign, terminal-first AI development companion engineered with a native Zig rendering core, dynamic Model Context Protocol client loops, and atomic rollback transaction safeguards.",
+  "theme": "mint",
   "colors": {
-    "primary": "#06b6d4",
-    "light": "#22d3ee",
-    "dark": "#0891b2"
+    "primary": "#5B6AF0",
+    "light": "#EEF0FF",
+    "dark": "#1A1D3B"
   },
   "favicon": "/favicon.svg",
-  "navigation": {
-    "pages": [
-      {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      },
-      {
-        "group": "Architecture & Tools",
-        "pages": [
-          "features"
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/hiroshi-os/Hypr",
-          "icon": "github"
-        }
-      ]
-    }
-  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/hiroshi-os/Hypr"
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/hiroshi-os/Hypr"
     }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Get Started",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "index",
+              "quickstart"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "TUI Layout",
+        "groups": [
+          {
+            "group": "Zig Core & Viewport",
+            "pages": [
+              "tui/viewport",
+              "tui/canvas-components"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Core Engine",
+        "groups": [
+          {
+            "group": "Actor-Critic & State",
+            "pages": [
+              "engine/scheduler",
+              "engine/state-compaction"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Tools & Plugins",
+        "groups": [
+          {
+            "group": "Built-In Tooling",
+            "pages": [
+              "tools/file-tools",
+              "tools/bash-interceptor"
+            ]
+          },
+          {
+            "group": "Protocols",
+            "pages": [
+              "integrations/mcp"
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

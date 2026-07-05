@@ -1,0 +1,9 @@
+---
+title: "Actor-Critic Scheduler"
+description: "Hierarchical task tracking and validation scheduling"
+---
+
+The planning loop delegates execution tasks through a structured Actor-Critic model:
+
+- **Actor**: The planner loops through user requests to formulate and stack discrete `TaskNode` parameters.
+- **Critic**: The safety monitor validates structural alterations (multi-file edits) against compiler/testing diagnostics before applying them.

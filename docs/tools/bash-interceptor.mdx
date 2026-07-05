@@ -1,0 +1,10 @@
+---
+title: "Bash Interceptor"
+description: "Managed subprocess execution with ring-buffered stdout streams"
+---
+
+The `execute_bash` tool manages subprocess commands using memory-resident ring buffers:
+
+- Captures `stdout` and `stderr` streams separately.
+- Filters and retains the last 200 lines of logs.
+- Isolates subprocess output feeds from React-OpenTUI render pipelines to avoid layout overlap.

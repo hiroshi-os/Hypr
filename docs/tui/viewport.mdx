@@ -1,0 +1,10 @@
+---
+title: "Zig Core & Viewport"
+description: "High-performance TUI rendering with native terminal canvas mapping"
+---
+
+Hypr uses **OpenTUI** which replaces traditional layout cycles with a native Zig engine rendering core.
+
+### Alternate Screen Switching
+
+By targeting `alternate-screen` screenMode, OpenTUI shifts rendering streams from standard output to the console's secondary buffer matrix. When exiting or aborting, it cleanly restores the main TUI console buffer, preventing cursor stack traces.
