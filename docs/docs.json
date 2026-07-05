@@ -28,7 +28,8 @@
             "group": "Overview",
             "pages": [
               "index",
-              "quickstart"
+              "quickstart",
+              "features"
             ]
           }
         ]
@@ -64,13 +65,46 @@
             "group": "Built-In Tooling",
             "pages": [
               "tools/file-tools",
-              "tools/bash-interceptor"
+              "tools/bash-interceptor",
+              "tools/compliance-tool",
+              "tools/diagnostic-tool"
+            ]
+          },
+          {
+            "group": "Plugin System",
+            "pages": [
+              "plugins/architecture",
+              "plugins/register-extension",
+              "plugins/plugin-viewport"
             ]
           },
           {
             "group": "Protocols",
             "pages": [
               "integrations/mcp"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Privacy & Compliance",
+        "groups": [
+          {
+            "group": "Data Guardrails",
+            "pages": [
+              "privacy/compliance-scrubbing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Blog",
+        "groups": [
+          {
+            "group": "Engineering Notes",
+            "pages": [
+              "blog/index",
+              "blog/zero-trust-execution"
             ]
           }
         ]
