@@ -19,60 +19,68 @@
       "href": "https://github.com/hiroshi-os/Hypr"
     }
   },
+  "tabs": [
+    {
+      "tab": "Get Started"
+    },
+    {
+      "tab": "TUI Layout"
+    },
+    {
+      "tab": "Core Engine"
+    },
+    {
+      "tab": "Tools & Plugins"
+    }
+  ],
   "navigation": {
-    "tabs": [
+    "groups": [
       {
         "tab": "Get Started",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "index",
-              "quickstart"
-            ]
-          }
+        "group": "Overview",
+        "pages": [
+          "index",
+          "quickstart"
+        ]
+      },
+      {
+        "tab": "Get Started",
+        "group": "Release Blog",
+        "pages": [
+          "blog/core-shell-loop",
+          "blog/task-trees-and-refactoring",
+          "blog/native-zig-performance-and-mcp"
         ]
       },
       {
         "tab": "TUI Layout",
-        "groups": [
-          {
-            "group": "Zig Core & Viewport",
-            "pages": [
-              "tui/viewport",
-              "tui/canvas-components"
-            ]
-          }
+        "group": "Zig Core & Viewport",
+        "pages": [
+          "tui/viewport",
+          "tui/canvas-components"
         ]
       },
       {
         "tab": "Core Engine",
-        "groups": [
-          {
-            "group": "Actor-Critic & State",
-            "pages": [
-              "engine/scheduler",
-              "engine/state-compaction"
-            ]
-          }
+        "group": "Actor-Critic & State",
+        "pages": [
+          "engine/scheduler",
+          "engine/state-compaction"
         ]
       },
       {
         "tab": "Tools & Plugins",
-        "groups": [
-          {
-            "group": "Built-In Tooling",
-            "pages": [
-              "tools/file-tools",
-              "tools/bash-interceptor"
-            ]
-          },
-          {
-            "group": "Protocols",
-            "pages": [
-              "integrations/mcp"
-            ]
-          }
+        "group": "Built-In Tooling",
+        "pages": [
+          "tools/file-tools",
+          "tools/bash-interceptor"
+        ]
+      },
+      {
+        "tab": "Tools & Plugins",
+        "group": "Protocols",
+        "pages": [
+          "integrations/mcp"
         ]
       }
     ]

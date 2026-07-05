@@ -1,0 +1,20 @@
+---
+title: "Dynamic Task Trees and Multi-File Refactoring"
+date: "2026-07-04"
+description: "Introducing hierarchical task scheduling queues, AST symbol outliners, and transactional edits with atomic rollbacks."
+---
+
+As developers, we frequently perform modifications across multiple files. For an AI agent to execute these changes reliably, it needs a higher degree of planning autonomy. This release introduces advanced task queues and transaction safety.
+
+## The Task Scheduler
+
+Hypr now tracks goals using a structured tree queue. The model schedules, splits, and updates goals on-the-fly:
+
+- **Actor**: formulating planning lists.
+- **Critic**: validating changes against compiler outputs.
+
+This dynamic sidebar updates in real-time, displaying pending, running, completed, and failed states.
+
+## Atomic Rollback Transactions
+
+When refactoring multiple files, if a compiler error occurs mid-way, the codebase is left in a broken state. We built `apply_multi_diff` to address this. It backs up target files, writes edits, and compiles the code via `bun run build`. If compilation checks fail, it reverts all files to their original states within 200ms, returning the build diagnostic logs to the model for self-healing.

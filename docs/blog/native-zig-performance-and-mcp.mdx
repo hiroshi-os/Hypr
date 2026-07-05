@@ -1,0 +1,25 @@
+---
+title: "Native Zig Performance and Protocol Integrations"
+date: "2026-07-05"
+description: "Migrating to OpenTUI's native Zig core via FFI and implementing dynamic Model Context Protocol stdio clients."
+---
+
+Terminal layouts must be fast and flicker-free. Traditional JS-heavy rendering engines can suffer from layout tearing or line duplication when printing continuous streams. This release transitions Hypr's layout layers to a native Zig core.
+
+## Native OpenTUI Core
+
+By shifting from React Ink to **OpenTUI**, all layout math occurs inside native Zig binaries bridged using Bun FFI. It locks rendering bounds to a strict screen-sized matrix, rendering borderless layouts with zinc backgrounds. Alternate screen buffers switch automatically on boot, exiting cleanly back to the host shell.
+
+## Subprocess Stream Ring-Buffer
+
+To prevent external compiler streams from polluting TTY frames, all shell outputs are directed into a memory-resident `LogRingBuffer`. It isolates the stream feeds from the main rendering loop, retaining the last 200 lines of logs.
+
+## Model Context Protocol (MCP) Client
+
+Hypr is now pluggable. Using JSON-RPC 2.0 stdio protocols, users can connect local or remote MCP servers:
+
+```bash
+connect_mcp_server node ./brave-search-server.js
+```
+
+The client queries tool definitions, maps them to dynamic Zod configurations, and exposes the injected tools directly to the model.
