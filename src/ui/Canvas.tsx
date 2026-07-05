@@ -1,16 +1,6 @@
 import * as React from "react";
-import { Box, Text, useInput } from "ink";
-import { Message, ContentBlock } from "../state/engine.ts";
 import { TaskNode } from "../state/scheduler.ts";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// OpenCode-style design system:
-//   - ZERO borders anywhere. No borderStyle, no borderColor.
-//   - Flat surfaces separated by whitespace/padding only.
-//   - Left-edge accent bar on input (single │ char in cyan).
-//   - Colors: cyan for active labels, orange for emphasis, white for content,
-//     gray/dim for secondary text. No emoji icons.
-// ─────────────────────────────────────────────────────────────────────────────
+import { Message, ContentBlock } from "../state/engine.ts";
 
 export interface SidebarProps {
   tasks: TaskNode[];
@@ -22,63 +12,62 @@ export interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ tasks, modelName, provider, cwd, rulesFound }) => {
   return (
-    <Box flexDirection="column" paddingLeft={2} paddingTop={1}>
-      <Box flexDirection="column" marginBottom={1}>
-        <Text color="white">Go CLI for agentic</Text>
-        <Text color="white">development tasks</Text>
-      </Box>
+    <box flexDirection="column" paddingLeft={2} paddingTop={1} height="100%">
+      <box flexDirection="column" marginBottom={1}>
+        <text fg="white">Go CLI for agentic</text>
+        <text fg="white">development tasks</text>
+      </box>
 
-      <Box flexDirection="column" marginBottom={1}>
-        <Text color="white" bold>Context</Text>
-        <Text color="gray">20,674 tokens</Text>
-        <Text color="gray">0% used</Text>
-        <Text color="gray">$0.00 spent</Text>
-      </Box>
+      <box flexDirection="column" marginBottom={1}>
+        <text fg="white" style={{ weight: "bold" }}>Context</text>
+        <text fg="gray">20,674 tokens</text>
+        <text fg="gray">0% used</text>
+        <text fg="gray">$0.00 spent</text>
+      </box>
 
-      <Box flexDirection="column" marginBottom={1}>
-        <Text color="white" bold>LSP</Text>
-        <Text color="gray">LSPs will activate as files are read</Text>
-      </Box>
+      <box flexDirection="column" marginBottom={1}>
+        <text fg="white" style={{ weight: "bold" }}>LSP</text>
+        <text fg="gray">LSPs will activate as files are read</text>
+      </box>
 
       {tasks.length > 0 && (
-        <Box flexDirection="column" marginBottom={1}>
-          <Text color="white" bold>Tasks</Text>
+        <box flexDirection="column" marginBottom={1}>
+          <text fg="white" style={{ weight: "bold" }}>Tasks</text>
           {tasks.map(t => {
             let icon = "○";
             if (t.status === "completed") icon = "●";
             else if (t.status === "running") icon = "▶";
             else if (t.status === "failed") icon = "×";
             return (
-              <Text key={t.id} color="gray">  {icon} {t.title}</Text>
+              <text key={t.id} fg="gray">  {icon} {t.title}</text>
             );
           })}
-        </Box>
+        </box>
       )}
 
-      <Box flexGrow={1} />
+      <box flexGrow={1} />
 
-      <Box flexDirection="column">
-        <Text color="gray">{cwd}</Text>
-        <Text color="gray"><Text color="#e8a838">●</Text> Hypr 3.0.0</Text>
-      </Box>
-    </Box>
+      <box flexDirection="column" marginBottom={1}>
+        <text fg="gray">{cwd}</text>
+        <text fg="gray"><span fg="#e8a838">●</span> Hypr 3.0.0</text>
+      </box>
+    </box>
   );
 };
 
 export const WelcomeLogo: React.FC = () => {
-  // OpenCode-style blocky pixel-art ASCII logo
   return (
-    <Box flexDirection="column" alignItems="center" marginTop={4} marginBottom={2}>
-      <Text color="gray">
+    <box flexDirection="column" alignItems="center" marginTop={4} marginBottom={2}>
+      <text fg="gray">
 {`
  █ █ █   █ █ █   █ █ █   █ █ █
  █   █   █   █   █   █   █   █
  █   █   █   █   █   █   █   █
  █ █ █   █ █ █   █ █ █   █ █ █
-`}</Text>
-      <Text color="gray" dimColor>
-{`           H Y P R`}</Text>
-    </Box>
+`}
+      </text>
+      <text fg="gray">           H Y P R</text>
+    </box>
   );
 };
 
@@ -89,61 +78,63 @@ export interface ChatMessageProps {
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   if (message.role === "system") {
     return (
-      <Box marginBottom={1} paddingLeft={2}>
-        <Text color="gray" italic>{typeof message.content === "string" ? message.content : JSON.stringify(message.content)}</Text>
-      </Box>
+      <box marginBottom={1} paddingLeft={2}>
+        <text fg="gray" style={{ italic: true }}>
+          {typeof message.content === "string" ? message.content : JSON.stringify(message.content)}
+        </text>
+      </box>
     );
   }
 
   if (message.role === "user") {
     return (
-      <Box flexDirection="column" marginBottom={1} paddingLeft={2}>
-        <Text color="white">{typeof message.content === "string" ? message.content : message.content.map(c => c.type === "text" ? c.text : "").join("")}</Text>
-      </Box>
+      <box flexDirection="column" marginBottom={1} paddingLeft={2}>
+        <text fg="white">
+          {typeof message.content === "string" 
+            ? message.content 
+            : message.content.map(c => c.type === "text" ? c.text : "").join("")}
+        </text>
+      </box>
     );
   }
 
   // Assistant message
   if (typeof message.content === "string") {
     return (
-      <Box flexDirection="column" marginBottom={1} paddingLeft={2}>
-        <Text color="white">{message.content}</Text>
-      </Box>
+      <box flexDirection="column" marginBottom={1} paddingLeft={2}>
+        <text fg="white">{message.content}</text>
+      </box>
     );
   }
 
   return (
-    <Box flexDirection="column" marginBottom={1} paddingLeft={2}>
+    <box flexDirection="column" marginBottom={1} paddingLeft={2}>
       {message.content.map((block: ContentBlock, idx: number) => {
         if (block.type === "text") {
-          return <Text key={idx} color="white">{block.text}</Text>;
+          return <text key={idx} fg="white">{block.text}</text>;
         } else if (block.type === "tool_use") {
           return (
-            <Box key={idx} flexDirection="column" marginTop={1}>
-              <Text color="#e8a838" bold>{block.name}</Text>
-              <Text color="gray">{JSON.stringify(block.input, null, 2)}</Text>
-            </Box>
+            <box key={idx} flexDirection="column" marginTop={1}>
+              <text fg="#e8a838" style={{ weight: "bold" }}>{block.name}</text>
+              <text fg="gray">{JSON.stringify(block.input, null, 2)}</text>
+            </box>
           );
         } else if (block.type === "tool_result") {
           const truncated = block.content.length > 300 ? block.content.slice(0, 300) + "..." : block.content;
           return (
-            <Box key={idx} flexDirection="column" marginTop={1}>
-              <Text color={block.is_error ? "red" : "green"} bold>{block.is_error ? "Error" : "Done"}</Text>
-              <Text color="gray">{truncated}</Text>
-            </Box>
+            <box key={idx} flexDirection="column" marginTop={1}>
+              <text fg={block.is_error ? "red" : "green"} style={{ weight: "bold" }}>
+                {block.is_error ? "Error" : "Done"}
+              </text>
+              <text fg="gray">{truncated}</text>
+            </box>
           );
         }
         return null;
       })}
-    </Box>
+    </box>
   );
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom input bar — the signature OpenCode element.
-// A flat dark band with a thin cyan left-edge accent bar (│ character).
-// No box borders at all.
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface InteractiveInputProps {
   onSubmit: (text: string) => void;
@@ -153,57 +144,50 @@ export interface InteractiveInputProps {
 export const InteractiveInput: React.FC<InteractiveInputProps> = ({ onSubmit, modelName }) => {
   const [value, setValue] = React.useState("");
 
-  useInput((input, key) => {
-    if (key.return) {
-      if (value.trim()) {
-        onSubmit(value);
-        setValue("");
-      }
-    } else if (key.backspace || key.delete) {
-      setValue(prev => prev.slice(0, -1));
-    } else if (!key.meta && !key.ctrl && input) {
-      setValue(prev => prev + input);
-    }
-  });
+  const handleSubmit = (val: string) => {
+    onSubmit(val);
+    setValue("");
+  };
 
   return (
-    <Box flexDirection="column">
+    <box flexDirection="column" width="100%">
       {/* Input area with left cyan accent bar */}
-      <Box flexDirection="row" paddingY={1}>
-        <Text color="cyan">│ </Text>
-        <Box flexDirection="column">
-          <Text color={value ? "white" : "gray"}>{value || 'Ask anything... "What is the tech stack of this project?"'}</Text>
-          <Box marginTop={1}>
-            <Text color="cyan">Sisyphus</Text>
-            <Text color="white">  {modelName} (OAuth)</Text>
-            <Text color="gray">  OpenAI · </Text>
-            <Text color="#e8a838">medium</Text>
-          </Box>
-        </Box>
-      </Box>
+      <box flexDirection="row" paddingY={1} width="100%">
+        <text fg="cyan">│ </text>
+        <box flexDirection="column" flexGrow={1}>
+          <input
+            focused={true}
+            value={value}
+            onChange={setValue}
+            onSubmit={handleSubmit}
+            placeholder='Ask anything... "What is the tech stack of this project?"'
+          />
+          <box marginTop={1} flexDirection="row">
+            <text fg="cyan">Sisyphus</text>
+            <text fg="white">  {modelName} (OAuth)</text>
+            <text fg="gray">  OpenAI · </text>
+            <text fg="#e8a838">medium</text>
+          </box>
+        </box>
+      </box>
 
       {/* Keyboard shortcut hints */}
-      <Box justifyContent="center" marginTop={1}>
-        <Text color="gray" bold>tab</Text>
-        <Text color="gray" dimColor> agents   </Text>
-        <Text color="gray" bold>ctrl+p</Text>
-        <Text color="gray" dimColor> commands</Text>
-      </Box>
+      <box justifyContent="center" marginTop={1}>
+        <text fg="gray" style={{ weight: "bold" }}>tab</text>
+        <text fg="gray"> agents   </text>
+        <text fg="gray" style={{ weight: "bold" }}>ctrl+p</text>
+        <text fg="gray"> commands</text>
+      </box>
 
       {/* Random tip */}
-      <Box justifyContent="center" marginTop={1}>
-        <Text color="#e8a838">● </Text>
-        <Text color="#e8a838" bold>Tip</Text>
-        <Text color="gray"> Create a plugin to prevent Hypr from reading sensitive files</Text>
-      </Box>
-    </Box>
+      <box justifyContent="center" marginTop={1}>
+        <text fg="#e8a838">● </text>
+        <text fg="#e8a838" style={{ weight: "bold" }}>Tip</text>
+        <text fg="gray"> Create a plugin to prevent Hypr from reading sensitive files</text>
+      </box>
+    </box>
   );
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Active session bottom bar — displayed when conversation is active.
-// Replaces the welcome input with a compact input strip.
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface SessionInputProps {
   onSubmit: (text: string) => void;
@@ -215,43 +199,41 @@ export interface SessionInputProps {
 export const SessionInput: React.FC<SessionInputProps> = ({ onSubmit, modelName, status, elapsed }) => {
   const [value, setValue] = React.useState("");
 
-  useInput((input, key) => {
-    if (key.return) {
-      if (value.trim()) {
-        onSubmit(value);
-        setValue("");
-      }
-    } else if (key.backspace || key.delete) {
-      setValue(prev => prev.slice(0, -1));
-    } else if (!key.meta && !key.ctrl && input) {
-      setValue(prev => prev + input);
-    }
-  });
+  const handleSubmit = (val: string) => {
+    onSubmit(val);
+    setValue("");
+  };
 
   return (
-    <Box flexDirection="column">
+    <box flexDirection="column" width="100%">
       {/* Status indicator */}
       {status !== "idle" && (
-        <Box paddingLeft={2} marginBottom={1}>
-          <Text color="blue">■</Text>
-          <Text color="gray">  {status === "thinking" ? "Build" : "Exec"} · </Text>
-          <Text color="gray" dimColor>{modelName} · {elapsed || "0.0s"}</Text>
-        </Box>
+        <box paddingLeft={2} marginBottom={1}>
+          <text fg="blue">■</text>
+          <text fg="gray">  {status === "thinking" ? "Build" : "Exec"} · </text>
+          <text fg="gray"> {modelName} · {elapsed || "0.0s"}</text>
+        </box>
       )}
 
       {/* Compact input */}
-      <Box flexDirection="row" paddingY={1}>
-        <Text color="cyan">│ </Text>
-        <Text color={value ? "white" : "gray"}>{value || ""}</Text>
-        <Text color="gray" dimColor>{value ? "" : "█"}</Text>
-      </Box>
+      <box flexDirection="row" paddingY={1} width="100%">
+        <text fg="cyan">│ </text>
+        <box flexGrow={1}>
+          <input
+            focused={true}
+            value={value}
+            onChange={setValue}
+            onSubmit={handleSubmit}
+          />
+        </box>
+      </box>
 
-      {/* Bottom bar */}
-      <Box>
-        <Text color="green">Build</Text>
-        <Text color="gray">  {modelName} llama.cpp (hosted)</Text>
-      </Box>
-    </Box>
+      {/* Bottom status bar */}
+      <box flexDirection="row">
+        <text fg="green">Build</text>
+        <text fg="gray">  {modelName} llama.cpp (hosted)</text>
+      </box>
+    </box>
   );
 };
 
@@ -261,25 +243,32 @@ export interface PermissionPromptProps {
 }
 
 export const PermissionPrompt: React.FC<PermissionPromptProps> = ({ message, onDecision }) => {
-  useInput((input) => {
-    if (input.toLowerCase() === "y") {
-      onDecision(true);
-    } else if (input.toLowerCase() === "n") {
-      onDecision(false);
-    }
-  });
+  // Setup keyboard events for permission prompt
+  React.useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "y" || e.key === "Y") {
+        onDecision(true);
+      } else if (e.key === "n" || e.key === "N") {
+        onDecision(false);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [onDecision]);
 
   return (
-    <Box flexDirection="column" paddingLeft={2} paddingY={1}>
-      <Text color="#e8a838" bold>Allow this action?</Text>
-      <Text color="white">{message}</Text>
-      <Box marginTop={1}>
-        <Text color="gray">[</Text>
-        <Text color="green" bold>y</Text>
-        <Text color="gray">]es  [</Text>
-        <Text color="red" bold>n</Text>
-        <Text color="gray">]o</Text>
-      </Box>
-    </Box>
+    <box flexDirection="column" paddingLeft={2} paddingY={1}>
+      <text fg="#e8a838" style={{ weight: "bold" }}>Allow this action?</text>
+      <text fg="white">{message}</text>
+      <box marginTop={1} flexDirection="row">
+        <text fg="gray">[</text>
+        <text fg="green" style={{ weight: "bold" }}>y</text>
+        <text fg="gray">]es  [</text>
+        <text fg="red" style={{ weight: "bold" }}>n</text>
+        <text fg="gray">]o</text>
+      </box>
+    </box>
   );
 };

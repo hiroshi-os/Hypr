@@ -1,5 +1,6 @@
 import * as React from "react";
-import { render, Box, Text } from "ink";
+import { createCliRenderer } from "@opentui/core";
+import { createRoot } from "@opentui/react";
 import { ConversationState, Message } from "./state/engine.ts";
 import { LLMClient } from "./llm/client.ts";
 import { DefaultPermissionGate } from "./permissions/middleware.ts";
@@ -11,24 +12,6 @@ import { scheduleTasksTool, updateTaskStatusTool, globalScheduler } from "./stat
 import { connectMcpServerTool, dynamicMcpTools } from "./tools/mcpTool.ts";
 import { loadProjectDirectives } from "./config/directives.ts";
 import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo } from "./ui/Canvas.tsx";
-
-// TTY alternate screen buffer switching sequences
-process.stdout.write("\x1b[?1049h"); // enter alternate buffer
-process.stdout.write("\x1bc");       // clear screen
-
-const cleanupTTY = () => {
-  process.stdout.write("\x1b[?1049l"); // restore main screen buffer
-};
-
-process.on("exit", cleanupTTY);
-process.on("SIGINT", () => {
-  cleanupTTY();
-  process.exit(0);
-});
-process.on("SIGTERM", () => {
-  cleanupTTY();
-  process.exit(0);
-});
 
 const toolsList = [
   readFileTool,
@@ -51,10 +34,6 @@ const HyprApp: React.FC = () => {
   const [currentToolProgress, setCurrentToolProgress] = React.useState("");
   const [tasks, setTasks] = React.useState(globalScheduler.getTasks());
   const [rulesFound, setRulesFound] = React.useState(false);
-  const [dimensions, setDimensions] = React.useState({
-    rows: process.stdout.rows || 24,
-    columns: process.stdout.columns || 80
-  });
 
   const stateRef = React.useRef<ConversationState>(new ConversationState());
   const permissionResolverRef = React.useRef<((allowed: boolean) => void) | null>(null);
@@ -71,15 +50,6 @@ const HyprApp: React.FC = () => {
   );
 
   React.useEffect(() => {
-    const handleResize = () => {
-      process.stdout.write("\x1bc"); // clear TTY screen boundaries to prevent tearing
-      setDimensions({
-        rows: process.stdout.rows || 24,
-        columns: process.stdout.columns || 80
-      });
-    };
-    process.stdout.on("resize", handleResize);
-
     const directives = loadProjectDirectives();
     let sysPrompt = "You are Hypr, a powerful CLI agentic coding assistant designed to solve developer tasks.\n" +
       "You have direct access to the filesystem and system execution. Work step-by-step to complete the task.\n";
@@ -91,18 +61,12 @@ const HyprApp: React.FC = () => {
     
     stateRef.current.setSystemPrompt(sysPrompt);
     setMessages(stateRef.current.getMessages());
-
-    return () => {
-      process.stdout.off("resize", handleResize);
-    };
   }, []);
 
   const handleUserInput = async (text: string) => {
     if (status !== "idle") return;
 
-    // Quit command handler
     if (text.trim().toLowerCase() === "exit" || text.trim().toLowerCase() === "quit") {
-      cleanupTTY();
       process.exit(0);
     }
 
@@ -222,32 +186,32 @@ const HyprApp: React.FC = () => {
   // Welcome screen: centered logo + input, no sidebar
   if (!hasSession && status === "idle") {
     return (
-      <Box flexDirection="column" width={dimensions.columns} height={dimensions.rows} alignItems="center" justifyContent="center">
+      <box flexDirection="column" width="100%" height="100%" alignItems="center" justifyContent="center">
         <WelcomeLogo />
-        <Box width={60}>
+        <box width={60}>
           <InteractiveInput onSubmit={handleUserInput} modelName={modelName} />
-        </Box>
-      </Box>
+        </box>
+      </box>
     );
   }
 
   // Active session: two-column flat layout
   return (
-    <Box flexDirection="row" width={dimensions.columns} height={dimensions.rows}>
+    <box flexDirection="row" width="100%" height="100%">
       {/* Left pane — chat + input */}
-      <Box flexDirection="column" width="65%" paddingLeft={1} paddingTop={1}>
-        <Box flexDirection="column" flexGrow={1}>
+      <box flexDirection="column" width="65%" paddingLeft={1} paddingTop={1}>
+        <box flexDirection="column" flexGrow={1}>
           {messages.map((msg, i) => (
             <ChatMessage key={i} message={msg} />
           ))}
 
           {(status === "thinking" || status === "executing_tool") && (
-            <Box paddingLeft={2} marginBottom={1}>
-              <Text color="yellow" italic>Thinking: </Text>
-              <Text color="gray">{status === "executing_tool" ? currentToolProgress : "Processing your request..."}</Text>
-            </Box>
+            <box paddingLeft={2} marginBottom={1}>
+              <text fg="yellow" style={{ italic: true }}>Thinking: </text>
+              <text fg="gray">{status === "executing_tool" ? currentToolProgress : "Processing your request..."}</text>
+            </box>
           )}
-        </Box>
+        </box>
 
         {status === "prompting_permission" && (
           <PermissionPrompt message={permissionMsg} onDecision={handlePermissionDecision} />
@@ -256,10 +220,10 @@ const HyprApp: React.FC = () => {
         {status === "idle" && (
           <SessionInput onSubmit={handleUserInput} modelName={modelName} status="idle" />
         )}
-      </Box>
+      </box>
 
       {/* Right pane — context sidebar */}
-      <Box width="35%">
+      <box width="35%">
         <Sidebar
           tasks={tasks}
           modelName={modelName}
@@ -267,9 +231,15 @@ const HyprApp: React.FC = () => {
           cwd={process.cwd()}
           rulesFound={rulesFound}
         />
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 };
 
-render(<HyprApp />);
+// Initialize native OpenTUI core CLI Renderer
+const renderer = await createCliRenderer({
+  screenMode: "alternate-screen",
+  exitOnCtrlC: true
+});
+
+createRoot(renderer).render(<HyprApp />);

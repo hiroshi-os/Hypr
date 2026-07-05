@@ -10,14 +10,13 @@
     "test": "bun test"
   },
   "dependencies": {
-    "ink": "^4.4.1",
+    "@opentui/core": "^0.4.3",
+    "@opentui/react": "^0.4.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.55",
-    "react-devtools-core": "^7.0.1",
     "typescript": "^5.3.3"
   }
 }
