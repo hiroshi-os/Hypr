@@ -1,6 +1,6 @@
 # Hypr CLI — High-Performance Agentic CLI Developer Companion
 
-Hypr is an open-source clone of Claude Code, built from the ground up as a terminal-first coding companion. Powered by a native **Zig rendering core** via **OpenTUI** and **Bun FFI**, Hypr delivers fluid, sub-millisecond drawing speeds, zero TUI layout tearing, and structured agent loops.
+Hypr is an open-source AI coding agent, built from the ground up as a terminal-first coding companion. Powered by a native **Zig rendering core** via **OpenTUI** and **Bun FFI**, Hypr delivers fluid, sub-millisecond drawing speeds, zero TUI layout tearing, and structured agent loops.
 
 ---
 

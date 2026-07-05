@@ -1,0 +1,63 @@
+---
+title: "register_extension"
+description: "Load a local plugin file into Hypr's isolated sandbox runtime"
+---
+
+`register_extension` provisions a local `.js` plugin file into Hypr's sandboxed Worker runtime. Once loaded, the plugin's hooks fire on every subsequent tool call in the session.
+
+## Usage
+
+```
+Load the audit-logger plugin from ./plugins/audit-logger.js
+```
+
+```
+register_extension({ pluginPath: "./plugins/audit-logger.js" })
+```
+
+On success:
+
+```
+Plugin 'audit-logger' (v1.0.0) loaded into sandbox at 2026-07-05T08:15:33.421Z
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `pluginPath` | `string` | ✓ | Absolute or relative path to a `.js` plugin file |
+
+Only `.js` files are accepted. TypeScript plugin source must be compiled or bundled before loading.
+
+## Writing a Plugin
+
+Create a `.js` file that calls `Hypr.register()` with a plugin manifest:
+
+```javascript
+// plugins/audit-logger.js
+Hypr.register({
+  meta: { name: "audit-logger", version: "1.2.0" },
+  hooks: {
+    beforeToolCall: async (ctx) => {
+      // Log every tool call before it runs
+      console.log(`[audit] ${new Date().toISOString()} → ${ctx.tool}`);
+      return { proceed: true };
+    },
+    afterToolCall: async (result) => {
+      // Log the outcome
+      console.log(`[audit] result: ${result.isError ? "ERROR" : "OK"}`);
+      return result;
+    }
+  }
+});
+```
+
+See [Plugin Architecture](/plugins/architecture) for the full hook reference and sandbox isolation model.
+
+## Replacing a Plugin
+
+Calling `register_extension` with the same plugin name unloads the existing Worker and provisions a fresh one with the new source. In-flight hook calls on the old Worker are abandoned.
+
+## Sandbox Constraints
+
+Plugins execute with no access to the host filesystem, shell, process environment, or network. Any attempt to use unavailable APIs either throws inside the Worker (caught and logged) or fails silently. The core binary is unaffected.
