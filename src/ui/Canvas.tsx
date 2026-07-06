@@ -169,6 +169,7 @@ export interface SidebarProps {
   dimmed?: boolean;
   connectedClients?: number;
   activeWorkers?: number;
+  activeDelegations?: any[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -183,6 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   dimmed,
   connectedClients,
   activeWorkers,
+  activeDelegations,
 }) => {
   // Count approx tokens
   let totalChars = 0;
@@ -222,6 +224,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         connectedClients={connectedClients || 1}
         activeWorkers={activeWorkers || 4}
       />
+
+      {activeDelegations && activeDelegations.length > 0 && (
+        <FlatSubagentMeshTrack activeDelegations={activeDelegations} />
+      )}
 
       <box flexDirection="column" marginBottom={1} marginTop={1}>
         <text fg={whiteColor}>Go CLI for agentic</text>
@@ -1594,6 +1600,39 @@ export const FlatDaemonMeshStatus: React.FC<FlatDaemonMeshStatusProps> = ({
       <box marginTop={1} flexDirection="row" gap={3} paddingLeft={2} flexShrink={0}>
         <text fg="gray">Sockets: <span fg="white">{connectedClients} attached TTYs</span></text>
         <text fg="gray">{"  "}Daemon PID: <span fg="white">{process.pid}</span></text>
+      </box>
+    </box>
+  );
+};
+
+export interface FlatSubagentMeshTrackProps {
+  activeDelegations: Array<{
+    id: string;
+    type: string;
+    status: string;
+    currentTask: string;
+  }>;
+}
+
+export const FlatSubagentMeshTrack: React.FC<FlatSubagentMeshTrackProps> = ({
+  activeDelegations,
+}) => {
+  return (
+    <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
+      {/* Subagent Status Feed - Structural Negative Spacing */}
+      <text fg="brightBlue" style={{ weight: "bold" }}>✦ ACTIVE SUBAGENT ALLOCATIONS</text>
+      
+      <box flexDirection="column" marginTop={1} paddingLeft={2} flexShrink={0}>
+        {activeDelegations.map((agent) => (
+          <box key={agent.id} flexDirection="row" width="100%" marginBottom={1} flexShrink={0}>
+            <text fg="magenta">@{agent.type.padEnd(10)}</text>
+            <text fg="white"> Status: </text>
+            <text fg={agent.status === "running" ? "yellow" : "green"}>
+              {agent.status.toUpperCase()}
+            </text>
+            <text fg="gray"> · {agent.currentTask}</text>
+          </box>
+        ))}
       </box>
     </box>
   );

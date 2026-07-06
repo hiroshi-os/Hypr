@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as path from "path";
 import { createCliRenderer } from "@opentui/core";
-import { createRoot } from "@opentui/react";
+import { createRoot, useKeyboard } from "@opentui/react";
 import { ConversationState, Message } from "./state/engine.ts";
 import {
   ChatMessage,
@@ -71,8 +71,34 @@ if (Bun.argv[2] === "daemon") {
     const [providerName, setProviderName] = React.useState("gemini");
     const [connectedClients, setConnectedClients] = React.useState(1);
     const [activeWorkers, setActiveWorkers] = React.useState(4);
+    const [activeDelegations, setActiveDelegations] = React.useState<any[]>([]);
 
     const socketRef = React.useRef<any>(null);
+    const ctrlXActiveRef = React.useRef(false);
+
+    useKeyboard((e) => {
+      if (e.ctrl && e.name === "x") {
+        ctrlXActiveRef.current = true;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (ctrlXActiveRef.current) {
+        if (e.name === "left") {
+          sendRequest("prevSession");
+          ctrlXActiveRef.current = false;
+          e.preventDefault();
+          e.stopPropagation();
+        } else if (e.name === "right") {
+          sendRequest("nextSession");
+          ctrlXActiveRef.current = false;
+          e.preventDefault();
+          e.stopPropagation();
+        } else {
+          ctrlXActiveRef.current = false;
+        }
+      }
+    });
 
     const closePicker = React.useCallback(() => {
       setActivePicker(null);
@@ -119,6 +145,7 @@ if (Bun.argv[2] === "daemon") {
                       setProviderName(p.providerName || "gemini");
                       setConnectedClients(p.connectedClients || 1);
                       setActiveWorkers(p.activeWorkers || 4);
+                      setActiveDelegations(p.activeDelegations || []);
                     }
                   } catch (_) {}
                 }
@@ -263,6 +290,7 @@ if (Bun.argv[2] === "daemon") {
               dimmed={isDimmed}
               connectedClients={connectedClients}
               activeWorkers={activeWorkers}
+              activeDelegations={activeDelegations}
             />
           </box>
         </box>

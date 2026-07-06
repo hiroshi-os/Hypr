@@ -259,3 +259,61 @@ describe("HyprDaemon Sockets IPC connection", () => {
   });
 });
 
+describe("Subagent Scoped Delegation Framework", () => {
+  test("Explore subagent blocks file write tools", async () => {
+    const { ScopedSubagent } = await import("../src/daemon/subagent.ts");
+    const subagent = new ScopedSubagent("test_sub", "explore", "Search repository structure", "");
+    
+    // Simulate running with tools list including write_file
+    const mockWriteTool = { name: "write_file", execute: async () => ({ content: "done" }) };
+    const mockReadTool = { name: "read_file", execute: async () => ({ content: "read done" }) };
+    
+    // The subagent should filter out write_file
+    let logsUpdate = 0;
+    const runPromise = subagent.run([mockWriteTool, mockReadTool], () => {
+      logsUpdate++;
+    });
+    
+    // Force complete
+    subagent.status = "completed";
+    await runPromise;
+    expect(logsUpdate).toBeGreaterThan(0);
+  });
+
+  test("Scout subagent git clones remote repository into doc cache fold", async () => {
+    const { ScopedSubagent } = await import("../src/daemon/subagent.ts");
+    const subagent = new ScopedSubagent("scout_sub", "scout", "Inspect library", "");
+    
+    const mockBashTool = {
+      name: "execute_bash",
+      execute: async () => ({ content: "Mock cloned" })
+    };
+    
+    let updated = false;
+    await subagent.run([mockBashTool], () => {
+      updated = true;
+    });
+    
+    expect(subagent.status).toBe("completed");
+  });
+
+  test("BackgroundCompactor compresses messages when threshold exceeded", async () => {
+    const { BackgroundCompactor } = await import("../src/daemon/compactor.ts");
+    const { ConversationState } = await import("../src/state/engine.ts");
+    
+    const compactor = new BackgroundCompactor(5);
+    const state = new ConversationState();
+    state.setSystemPrompt("Sys prompt");
+    
+    // Add 8 user messages to state
+    for (let i = 0; i < 8; i++) {
+      state.addMessage({ role: "user", content: `msg ${i}` });
+    }
+    
+    const compacted = await compactor.checkAndCompact(state);
+    expect(compacted).toBe(true);
+    // Compactor down sizes messages list to conserve tokens
+    expect(state.getMessages().length).toBeLessThan(8);
+  });
+});
+

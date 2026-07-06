@@ -17,6 +17,8 @@ import { registerExtensionTool } from "../tools/extensionTool.ts";
 import { generateDiagnosticBundleTool } from "../tools/diagnosticTool.ts";
 import { globalPersistence, SessionStateSnapshot } from "./persistence.ts";
 import { AGENTS_LIST } from "../ui/Canvas.tsx";
+import { ScopedSubagent } from "./subagent.ts";
+import { globalCompactor } from "./compactor.ts";
 
 const toolsList = [
   readFileTool,
@@ -55,6 +57,9 @@ export class HyprDaemon {
   private currentModelName = "Gemini 2.5 Flash";
   private providerName = "gemini";
   
+  private subagents: ScopedSubagent[] = [];
+  private activeSessionIndex = 0;
+
   private state: ConversationState;
   private client: LLMClient;
   private gate: DefaultPermissionGate;
@@ -168,9 +173,24 @@ export class HyprDaemon {
     });
   }
 
+  private getTotalSessions() {
+    return 1 + this.subagents.length;
+  }
+
   private getStatePayload() {
+    const currentMsgs = this.activeSessionIndex === 0
+      ? this.messages
+      : (this.subagents[this.activeSessionIndex - 1]?.getMessages() || []);
+
+    const activeDelegations = this.subagents.map(s => ({
+      id: s.id,
+      type: s.type,
+      status: s.status,
+      currentTask: s.currentTask
+    }));
+
     return {
-      messages: this.messages,
+      messages: currentMsgs,
       status: this.status,
       permissionMsg: this.permissionMsg,
       currentToolProgress: this.currentToolProgress,
@@ -182,6 +202,8 @@ export class HyprDaemon {
       providerName: this.providerName,
       connectedClients: this.clients.size,
       activeWorkers: AGENTS_LIST.length,
+      activeSessionIndex: this.activeSessionIndex,
+      activeDelegations,
     };
   }
 
@@ -220,6 +242,14 @@ export class HyprDaemon {
         this.permissionMsg = "";
         this.broadcastState();
       }
+    } else if (method === "prevSession") {
+      const count = this.getTotalSessions();
+      this.activeSessionIndex = (this.activeSessionIndex - 1 + count) % count;
+      this.broadcastState();
+    } else if (method === "nextSession") {
+      const count = this.getTotalSessions();
+      this.activeSessionIndex = (this.activeSessionIndex + 1) % count;
+      this.broadcastState();
     }
   }
 
@@ -232,7 +262,38 @@ export class HyprDaemon {
     if (lower === "/new") {
       this.state = new ConversationState();
       this.messages = [];
+      this.subagents = [];
+      this.activeSessionIndex = 0;
       this.broadcastState();
+      return;
+    }
+
+    if (this.activeSessionIndex > 0) {
+      const sub = this.subagents[this.activeSessionIndex - 1];
+      if (sub) {
+        sub.state.addMessage({ role: "user", content: text });
+        this.broadcastState();
+        sub.run(toolsList, () => {
+          this.broadcastState();
+        });
+      }
+      return;
+    }
+
+    if (trimmed.startsWith("@explore ") || trimmed.startsWith("@scout ") || trimmed.startsWith("@general ")) {
+      const spaceIdx = trimmed.indexOf(" ");
+      const type = trimmed.slice(1, spaceIdx) as "explore" | "scout" | "general";
+      const task = trimmed.slice(spaceIdx + 1);
+
+      const subId = `sub_${Date.now()}`;
+      const sub = new ScopedSubagent(subId, type, task, this.state.getSystemPrompt());
+      this.subagents.push(sub);
+      this.activeSessionIndex = this.subagents.length;
+      this.broadcastState();
+
+      sub.run(toolsList, () => {
+        this.broadcastState();
+      });
       return;
     }
 
@@ -241,12 +302,29 @@ export class HyprDaemon {
     this.messages.push(userMsg);
     this.broadcastState();
 
-    this.runAgentLoop();
+    await this.runAgentLoop();
+
+    const compacted = await globalCompactor.checkAndCompact(this.state);
+    if (compacted) {
+      this.messages = this.state.getMessages();
+      this.broadcastState();
+    }
   }
 
   private async runAgentLoop() {
     this.status = "thinking";
     this.broadcastState();
+
+    // Automated Forking on message volume
+    if (this.state.getMessages().length > 12 && this.subagents.length === 0) {
+      const subId = `sub_auto_${Date.now()}`;
+      const sub = new ScopedSubagent(subId, "explore", "Automated context analysis & indexing", this.state.getSystemPrompt());
+      this.subagents.push(sub);
+      this.broadcastState();
+      sub.run(toolsList, () => {
+        this.broadcastState();
+      });
+    }
 
     this.retryCount = 0;
 
