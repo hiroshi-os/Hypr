@@ -340,6 +340,7 @@ const HyprApp: React.FC = () => {
             activeAgent={activeAgent}
             activeVariant={activeVariant}
             primaryColor={primaryColor}
+            onCycleAgent={handleCycleAgent}
             onOpenModelPicker={() => setActivePicker("models")}
             onOpenAgentPicker={() => setActivePicker("agents")}
             onOpenProviderPicker={() => setActivePicker("providers")}
@@ -383,6 +384,7 @@ const HyprApp: React.FC = () => {
                 activeVariant={activeVariant}
                 primaryColor={primaryColor}
                 status="idle"
+                onCycleAgent={handleCycleAgent}
                 onOpenModelPicker={() => setActivePicker("models")}
                 onOpenAgentPicker={() => setActivePicker("agents")}
                 onOpenProviderPicker={() => setActivePicker("providers")}
@@ -423,6 +425,14 @@ const HyprApp: React.FC = () => {
     setActiveAgent(agent.name);
     closePicker();
   };
+
+  const handleCycleAgent = React.useCallback(() => {
+    setActiveAgent((current) => {
+      const idx = AGENTS_LIST.findIndex((a) => a.name === current);
+      const next = AGENTS_LIST[(idx + 1) % AGENTS_LIST.length];
+      return next.name;
+    });
+  }, []);
 
   const handleSelectProvider = (prov: any) => {
     closePicker();

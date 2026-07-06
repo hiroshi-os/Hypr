@@ -870,6 +870,7 @@ export interface InteractiveInputProps {
   activeAgent: string;
   activeVariant: string;
   primaryColor: string;
+  onCycleAgent: () => void;
   onOpenModelPicker: () => void;
   onOpenAgentPicker: () => void;
   onOpenProviderPicker: () => void;
@@ -885,6 +886,7 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
   activeAgent,
   activeVariant,
   primaryColor,
+  onCycleAgent,
   onOpenModelPicker,
   onOpenAgentPicker,
   onOpenProviderPicker,
@@ -963,7 +965,7 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
       }
     } else {
       if (e.name === "tab") {
-        onOpenAgentPicker();
+        onCycleAgent();
         e.preventDefault();
         e.stopPropagation();
       } else if (e.ctrl && e.name === "p") {
@@ -1096,7 +1098,7 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
       {/* Keyboard shortcut hints */}
       <box flexDirection="row" justifyContent="flex-end" marginTop={1}>
         <text fg={accentColor} style={{ weight: "bold" }}>tab</text>
-        <text fg={mutedFg}> agents </text>
+        <text fg={mutedFg}> next agent </text>
         <text fg={accentColor} style={{ weight: "bold" }}>ctrl+p</text>
         <text fg={mutedFg}> commands</text>
       </box>
@@ -1122,6 +1124,7 @@ export interface SessionInputProps {
   primaryColor: string;
   status: string;
   elapsed?: string;
+  onCycleAgent: () => void;
   onOpenModelPicker: () => void;
   onOpenAgentPicker: () => void;
   onOpenProviderPicker: () => void;
@@ -1139,6 +1142,7 @@ export const SessionInput: React.FC<SessionInputProps> = ({
   primaryColor,
   status,
   elapsed,
+  onCycleAgent,
   onOpenModelPicker,
   onOpenAgentPicker,
   onOpenProviderPicker,
@@ -1218,7 +1222,7 @@ export const SessionInput: React.FC<SessionInputProps> = ({
       }
     } else {
       if (e.name === "tab") {
-        onOpenAgentPicker();
+        onCycleAgent();
         e.preventDefault();
         e.stopPropagation();
       } else if (e.ctrl && e.name === "p") {
