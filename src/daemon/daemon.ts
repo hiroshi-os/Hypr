@@ -304,9 +304,22 @@ export class HyprDaemon {
       const count = this.getTotalSessions();
       this.activeSessionIndex = (this.activeSessionIndex - 1 + count) % count;
       this.broadcastState();
-    } else if (method === "nextSession") {
-      const count = this.getTotalSessions();
-      this.activeSessionIndex = (this.activeSessionIndex + 1) % count;
+    } else if (method === "session/reset") {
+      const isTest = process.env.NODE_ENV === "test" || process.env.BUN_ENV === "test";
+      if (!isTest) {
+        this.sessionId = globalPersistence.resetSessionForDirectory(process.cwd());
+      } else {
+        this.sessionId = `test-reset-${Date.now()}`;
+      }
+      this.messages = [];
+      this.state.clearMessages();
+      const directives = loadProjectDirectives();
+      let sysPrompt = "You are Hypr, a powerful CLI agentic coding assistant designed to solve developer tasks.\n" +
+        "You have direct access to the filesystem and system execution. Work step-by-step to complete the task.\n";
+      if (directives.rules) {
+        sysPrompt += `\nProject architectural guidelines & rules:\n${directives.rules}\n`;
+      }
+      this.state.setSystemPrompt(sysPrompt);
       this.broadcastState();
     }
   }
