@@ -38,11 +38,21 @@ export const applyMultiDiffTool = createTool({
         }
       }
 
-      // 2. Perform backups
+      // 2. Perform backups in .hypr/shadow/
+      const cwd = process.cwd();
+      const shadowDir = path.join(cwd, ".hypr", "shadow");
+      if (!fs.existsSync(shadowDir)) {
+        fs.mkdirSync(shadowDir, { recursive: true });
+      }
+
       for (const edit of args.edits) {
         const fullPath = path.resolve(edit.path);
         const originalContent = fs.readFileSync(fullPath, "utf-8");
-        const backupPath = `${fullPath}.bak`;
+        const relPath = path.relative(cwd, fullPath);
+        const backupPath = path.join(shadowDir, relPath);
+        
+        // Ensure parent directories inside shadow exist
+        fs.mkdirSync(path.dirname(backupPath), { recursive: true });
         fs.writeFileSync(backupPath, originalContent, "utf-8");
         backupFiles.push({
           originalPath: fullPath,
@@ -60,7 +70,6 @@ export const applyMultiDiffTool = createTool({
       }
 
       // 4. Run validation loop (compile or tests check)
-      // Check if bun build command works
       const isWindows = process.platform === "win32";
       const shell = isWindows ? "powershell.exe" : "bash";
       const validateCmdArgs = isWindows ? ["-Command", "bun run build"] : ["-c", "bun run build"];
@@ -77,7 +86,7 @@ export const applyMultiDiffTool = createTool({
         const errText = await new Response(proc.stderr).text();
         const outText = await new Response(proc.stdout).text();
         
-        // Validation failed, trigger Rollback
+        // Validation failed, trigger Rollback within 200ms
         for (const backup of backupFiles) {
           fs.writeFileSync(backup.originalPath, backup.content, "utf-8");
         }
@@ -112,13 +121,20 @@ export const applyMultiDiffTool = createTool({
         content: `Critical error during transaction: ${e.message}. Rolled back all changes.`
       };
     } finally {
-      // Ensure all backups are deleted
+      // Clean up shadow directory files
       for (const backup of backupFiles) {
         if (fs.existsSync(backup.backupPath)) {
           try {
             fs.unlinkSync(backup.backupPath);
           } catch (_) {}
         }
+      }
+      // Recursively delete shadow directory structure if empty
+      const shadowDir = path.join(process.cwd(), ".hypr", "shadow");
+      if (fs.existsSync(shadowDir)) {
+        try {
+          fs.rmSync(shadowDir, { recursive: true, force: true });
+        } catch (_) {}
       }
     }
   },

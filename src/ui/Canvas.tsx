@@ -731,7 +731,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                     </text>
                     <box
                       flexDirection="column"
-                      backgroundColor="#1e1e24"
+                      backgroundColor="#202024"
                       padding={1}
                       marginTop={1}
                       width="100%"
@@ -742,11 +742,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                         const isDeletion = line.type === "del";
 
                         let lineBg = "transparent";
-                        let lineFg = textFg;
+                        let lineFg = dimmed ? "gray" : "white";
                         let prefix = "  ";
 
                         if (isAddition) {
-                          lineBg = "#1b3c22"; // Deep green block tint
+                          lineBg = "#1b3c22"; // Deep green text block tint
                           lineFg = dimmed ? "gray" : "brightGreen";
                           prefix = "+ ";
                         } else if (isDeletion) {
@@ -765,7 +765,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                           >
                             <text fg={lineFg}>
                               <span fg="gray">
-                                {line.num.toString().padEnd(4)}
+                                {line.num.toString().padEnd(6)}
                               </span>
                               {prefix}
                               {line.content}

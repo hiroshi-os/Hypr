@@ -155,3 +155,55 @@ describe("LLMClient Model & Provider Switching", () => {
     expect(client.getProviderName()).toBe("gemini");
   });
 });
+
+describe("Atomic Multi-File Transaction Engine", () => {
+  const file1 = path.resolve("./test_multi_1.txt");
+  const file2 = path.resolve("./test_multi_2.txt");
+
+  test("Successful transaction execution", async () => {
+    fs.writeFileSync(file1, "Hello from file 1\nsome context text", "utf-8");
+    fs.writeFileSync(file2, "Hello from file 2\nanother piece of text", "utf-8");
+
+    const result = await applyMultiDiffTool.execute({
+      edits: [
+        { path: file1, search: "Hello from file 1", replace: "Hola file 1" },
+        { path: file2, search: "Hello from file 2", replace: "Hola file 2" }
+      ]
+    });
+
+    expect(result.isError).toBe(false);
+    expect(fs.readFileSync(file1, "utf-8")).toBe("Hola file 1\nsome context text");
+    expect(fs.readFileSync(file2, "utf-8")).toBe("Hola file 2\nanother piece of text");
+
+    if (fs.existsSync(file1)) fs.unlinkSync(file1);
+    if (fs.existsSync(file2)) fs.unlinkSync(file2);
+  });
+
+  test("Transaction rollback on validation syntax error", async () => {
+    fs.writeFileSync(file1, "Original content 1", "utf-8");
+    fs.writeFileSync(file2, "Original content 2", "utf-8");
+
+    // Intentionally inject search block missing or let compile fail.
+    // If search block missing -> tool aborts.
+    const result = await applyMultiDiffTool.execute({
+      edits: [
+        { path: file1, search: "Original content 1", replace: "New content 1" },
+        { path: file2, search: "Non-existent text", replace: "New content 2" }
+      ]
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result.content).toContain("Transaction aborted");
+    // Original contents must remain completely unchanged
+    expect(fs.readFileSync(file1, "utf-8")).toBe("Original content 1");
+    expect(fs.readFileSync(file2, "utf-8")).toBe("Original content 2");
+
+    // Check volatile shadow cache is cleaned
+    const shadowDir = path.join(process.cwd(), ".hypr", "shadow");
+    expect(fs.existsSync(shadowDir)).toBe(false);
+
+    if (fs.existsSync(file1)) fs.unlinkSync(file1);
+    if (fs.existsSync(file2)) fs.unlinkSync(file2);
+  });
+});
+
