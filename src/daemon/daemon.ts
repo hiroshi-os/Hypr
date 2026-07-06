@@ -427,6 +427,23 @@ export class HyprDaemon {
                 continue;
               }
 
+              // ── Epic 3: Pre-Flight Diagnostics Interceptor Gate on tool execution ──
+              if (tool.name === "execute_bash" && call.input?.command) {
+                const cmd = call.input.command.toLowerCase();
+                if (cmd.includes("test") || cmd.includes("build") || cmd.includes("run")) {
+                  const globalErrors = globalLspManager.getGlobalErrorCount();
+                  if (globalErrors > 0) {
+                    toolResults.push({
+                      type: "tool_result",
+                      tool_use_id: call.id,
+                      content: `! lsp: Pre-flight check blocked command execution due to active type conflicts. Please resolve diagnostics first.`,
+                      is_error: true
+                    });
+                    continue;
+                  }
+                }
+              }
+
               // ── Phase 4: beforeToolCall lifecycle hook ──────────────────
               const hookResult = await globalPluginManager.runHook("beforeToolCall", { tool: tool.name, input: call.input });
               if (!hookResult.proceed) {
@@ -503,6 +520,20 @@ export class HyprDaemon {
         if (turnEnded) {
           const directives = loadProjectDirectives();
           if (directives.testCommand && this.retryCount < this.maxRetries) {
+            // ── Epic 3: Pre-Flight Diagnostics Interceptor Gate ──
+            const globalErrors = globalLspManager.getGlobalErrorCount();
+            if (globalErrors > 0) {
+              const warningMsg: Message = {
+                role: "system",
+                content: `! lsp: Pre-flight check blocked test execution due to active type conflicts.`
+              };
+              this.messages.push(warningMsg);
+              this.state.addMessage(warningMsg);
+              this.broadcastState();
+              loop = false;
+              break;
+            }
+
             this.status = "executing_tool";
             this.currentToolProgress = `Running tests: ${directives.testCommand}...`;
             this.broadcastState();
