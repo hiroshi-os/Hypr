@@ -274,10 +274,19 @@ export class HyprDaemon {
       this.activeAgent = params.agent.name;
       this.broadcastState();
     } else if (method === "selectProvider") {
+      const pName = params.provider.name;
+      this.providerName = pName;
+      globalConfigManager.setProvider(pName.toLowerCase());
+      const cfg = globalConfigManager.getConfig();
+      this.currentModelName = cfg.current_model;
       this.messages.push({
         role: "system",
-        content: `System: Provider connected to ${params.provider.name}`
+        content: `System: Provider connected to ${pName}. Active model is: ${cfg.current_model}`
       });
+      this.broadcastState();
+    } else if (method === "registerProviderKey") {
+      const { provider, key } = params;
+      globalConfigManager.setKey(provider.toLowerCase(), key);
       this.broadcastState();
     } else if (method === "selectVariant") {
       this.activeVariant = params.variant.name;
