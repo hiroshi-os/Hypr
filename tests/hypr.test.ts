@@ -355,3 +355,46 @@ describe("LSP Core Client & Interceptor", () => {
   });
 });
 
+describe("Local Vector Indexer & Semantic Search", () => {
+  test("AST chunking extracts logical class and function blocks", async () => {
+    const { globalVectorRegistry } = await import("../src/daemon/vector.ts");
+    globalVectorRegistry.clear();
+
+    const sampleCode = `
+      class UserSession {
+        authenticate() {
+          return true;
+        }
+      }
+      function validateToken(token) {
+        return token === "valid";
+      }
+    `;
+
+    globalVectorRegistry.chunkFile("src/auth.ts", sampleCode);
+    const results = globalVectorRegistry.search("validateToken authenticate");
+    
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].filePath).toBe("src/auth.ts");
+    expect(results[0].score).toBeGreaterThan(0);
+    
+    globalVectorRegistry.clear();
+  });
+
+  test("semantic_code_search tool executes index searches", async () => {
+    const { semanticCodeSearchTool } = await import("../src/tools/vectorTools.ts");
+    const { globalVectorRegistry } = await import("../src/daemon/vector.ts");
+    globalVectorRegistry.clear();
+    
+    globalVectorRegistry.chunkFile("src/service.ts", "class PaymentGateway { process() {} }");
+    
+    const result = await semanticCodeSearchTool.execute({ query: "process PaymentGateway", limit: 3 });
+    expect(result.isError).toBe(false);
+    
+    const data = JSON.parse(result.content);
+    expect(data.matchNodes[0].filePath).toBe("src/service.ts");
+    
+    globalVectorRegistry.clear();
+  });
+});
+
