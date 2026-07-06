@@ -1,0 +1,15 @@
+{
+  "version": 3,
+  "skills": {
+    "opentui": {
+      "source": "anomalyco/opentui",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/anomalyco/opentui.git",
+      "skillPath": "packages/web/src/content/SKILL.md",
+      "skillFolderHash": "200613ced9dd6d3bd445de781e7b63787e7fff9f",
+      "installedAt": "2026-07-06T06:37:00.222Z",
+      "updatedAt": "2026-07-06T06:37:00.222Z"
+    }
+  },
+  "dismissed": {}
+}
