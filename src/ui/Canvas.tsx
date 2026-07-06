@@ -307,6 +307,14 @@ function getCircularDistance(a: number, b: number, total: number): number {
   return Math.min(diff, total - diff);
 }
 
+function interpolateColor(base: [number, number, number], target: [number, number, number], progress: number): string {
+  const r = Math.round(base[0] + (target[0] - base[0]) * progress);
+  const g = Math.round(base[1] + (target[1] - base[1]) * progress);
+  const b = Math.round(base[2] + (target[2] - base[2]) * progress);
+  const hex = ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+  return `#${hex}`;
+}
+
 export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
   const [animationTick, setAnimationTick] = React.useState(0);
   const [holdInfo, setHoldInfo] = React.useState<{
@@ -330,7 +338,6 @@ export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
           if (!prev) return null;
           const newElapsed = Date.now() - prev.startTime;
           if (newElapsed >= 3000) {
-            // Explode!
             setActiveRipple({ sourceIdx: prev.letterIdx, step: 0, isExplode: true });
             return null;
           }
@@ -472,20 +479,27 @@ export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
                       if (dimmed) {
                         color = "gray";
                       } else {
-                        if (holdInfo && holdInfo.letterIdx === idx) {
-                          const cellIndex = getOuterCellIndex(r, c);
-                          if (cellIndex !== -1) {
-                            const speed = 0.05 + (holdInfo.elapsed / 3000) * 0.4;
-                            const currentPos = (animationTick * speed) % 12;
-                            const dist = getCircularDistance(cellIndex, currentPos, 12);
-                            if (dist < 3) {
-                              const tones = ["#ff5500", "#ff7e33", "#ffa54f"];
-                              color = tones[Math.floor(dist)];
+                        if (holdInfo) {
+                          if (holdInfo.letterIdx === idx) {
+                            const cellIndex = getOuterCellIndex(r, c);
+                            if (cellIndex !== -1) {
+                              const speed = 0.05 + (holdInfo.elapsed / 3000) * 0.4;
+                              const currentPos = (animationTick * speed) % 12;
+                              const dist = getCircularDistance(cellIndex, currentPos, 12);
+                              if (dist < 3) {
+                                const tones = ["#ff5500", "#ff7e33", "#ffa54f"];
+                                color = tones[Math.floor(dist)];
+                              } else {
+                                color = "#52525b";
+                              }
                             } else {
-                              color = "#52525b";
+                              color = "#27272a";
                             }
                           } else {
-                            color = "#27272a";
+                            const baseRGB = idx < 4 ? [128, 128, 128] : [255, 255, 255];
+                            const targetRGB = [24, 24, 27];
+                            const progress = Math.min(1.0, holdInfo.elapsed / 3000);
+                            color = interpolateColor(baseRGB, targetRGB, progress);
                           }
                         } else if (activeRipple) {
                           const sourceX = activeRipple.sourceIdx * 5 + 2;
@@ -509,6 +523,15 @@ export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
                               const gradient = ["#ff3b00", "#ff7c00", "#ffab00", "#ffd27f"];
                               const colorIdx = Math.floor((diff / thickness) * gradient.length);
                               color = gradient[Math.min(colorIdx, gradient.length - 1)];
+                            }
+                          } else if (d < wavePos) {
+                            const age = wavePos - d;
+                            const maxAge = activeRipple.isExplode ? 12.0 : 7.0;
+                            if (age < maxAge) {
+                              const waveRGB = [255, 124, 0];
+                              const baseRGB = idx < 4 ? [128, 128, 128] : [255, 255, 255];
+                              const progress = age / maxAge;
+                              color = interpolateColor(waveRGB, baseRGB, progress);
                             }
                           }
                         }
