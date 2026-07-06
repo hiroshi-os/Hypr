@@ -570,25 +570,27 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
                 <text fg="brightBlue" style={{ weight: "bold" }}>
                   {cat}
                 </text>
-                {catItems.map((item) => {
-                  const absIndex = items.indexOf(item);
-                  const isSelected = absIndex === selectedIndex;
-                  return (
-                    <box
-                      key={item.name}
-                      flexDirection="row"
-                      backgroundColor={isSelected ? "#e8a838" : undefined}
-                      paddingLeft={1}
-                    >
-                      <text fg={isSelected ? "black" : "white"}>
-                        {isSelected ? "• " : "  "}
-                        <span style={{ weight: "bold" }}>{item.name}</span>
-                        {"   "}
-                        <span fg={isSelected ? "black" : "gray"}>{item.desc}</span>
-                      </text>
-                    </box>
-                  );
-                })}
+                 {catItems.map((item) => {
+                   const absIndex = items.indexOf(item);
+                   const isSelected = absIndex === selectedIndex;
+                   return (
+                     <box
+                       key={item.name}
+                       flexDirection="row"
+                       backgroundColor={isSelected ? "#e8a838" : undefined}
+                       paddingLeft={1}
+                       onMouseOver={() => setSelectedIndex(absIndex)}
+                       onMouseDown={() => onSelect(item)}
+                     >
+                       <text fg={isSelected ? "black" : "white"}>
+                         {isSelected ? "• " : "  "}
+                         <span style={{ weight: "bold" }}>{item.name}</span>
+                         {"   "}
+                         <span fg={isSelected ? "black" : "gray"}>{item.desc}</span>
+                       </text>
+                     </box>
+                   );
+                 })}
               </box>
             );
           })}
@@ -693,12 +695,17 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
             {filteredCommands.map((cmd, idx) => {
               const isSelected = idx === activeIndex;
               return (
-                <box
-                  key={cmd.name}
-                  flexDirection="row"
-                  backgroundColor={isSelected ? "#e8a838" : undefined}
-                  paddingX={1}
-                >
+                 <box
+                   key={cmd.name}
+                   flexDirection="row"
+                   backgroundColor={isSelected ? "#e8a838" : undefined}
+                   paddingX={1}
+                   onMouseOver={() => setSelectedIndex(idx)}
+                   onMouseDown={() => {
+                     setValue(cmd.name + " ");
+                     setSelectedIndex(0);
+                   }}
+                 >
                   <text
                     fg={isSelected ? "black" : "white"}
                     style={{ weight: "bold" }}
@@ -875,12 +882,17 @@ export const SessionInput: React.FC<SessionInputProps> = ({
             {filteredCommands.map((cmd, idx) => {
               const isSelected = idx === activeIndex;
               return (
-                <box
-                  key={cmd.name}
-                  flexDirection="row"
-                  backgroundColor={isSelected ? "#e8a838" : undefined}
-                  paddingX={1}
-                >
+                 <box
+                   key={cmd.name}
+                   flexDirection="row"
+                   backgroundColor={isSelected ? "#e8a838" : undefined}
+                   paddingX={1}
+                   onMouseOver={() => setSelectedIndex(idx)}
+                   onMouseDown={() => {
+                     setValue(cmd.name + " ");
+                     setSelectedIndex(0);
+                   }}
+                 >
                   <text
                     fg={isSelected ? "black" : "white"}
                     style={{ weight: "bold" }}
