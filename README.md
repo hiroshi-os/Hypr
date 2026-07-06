@@ -7,7 +7,7 @@ Hypr is an open-source AI coding agent, built from the ground up as a terminal-f
 ## ⚡ Core Features
 
 - **Native OpenTUI Canvas**: Fully screen-buffered viewport switcher utilizing native Zig bindings instead of JS-heavy layouts.
-- **OpenCode Flat Monochrome Aesthetic**: A borderless visual style with clean zinc highlights, left-vertical accent lines (`│`), and a tabbed right-hand metadata panel.
+- **Flat Monochrome Aesthetic**: A borderless visual style with clean zinc highlights, left-vertical accent lines (`│`), and a tabbed right-hand metadata panel.
 - **Zod-to-Tool Registry**: Every tool is validated against a strict Zod schema before execution.
 - **Permissions Middleware**: Programmatic classifier that intercepts destructive subprocess commands and file updates, requesting manual override.
 - **Actor-Critic Scheduler**: Formulates lists of `TaskNode` parameters (Actor) and validates edits against compiler outcomes (Critic).

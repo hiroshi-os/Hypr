@@ -11,11 +11,11 @@ export const SLASH_COMMANDS = [
 ];
 
 export const MODELS_LIST = [
-  { name: "DeepSeek V4 Flash Free OpenCode Zen", desc: "Free", category: "Recent", provider: "mock", model: "deepseek-v4-flash-free" },
-  { name: "Big Pickle", desc: "Free", category: "OpenCode Zen", provider: "mock", model: "big-pickle" },
-  { name: "MiMo V2.5 Free", desc: "Free", category: "OpenCode Zen", provider: "mock", model: "mimo-v2.5-free" },
-  { name: "Nemotron 3 Ultra Free", desc: "Free", category: "OpenCode Zen", provider: "mock", model: "nemotron-3-ultra-free" },
-  { name: "North Mini Code Free", desc: "Free", category: "OpenCode Zen", provider: "mock", model: "north-mini-code-free" },
+  { name: "DeepSeek V4 Flash Free", desc: "Free", category: "Recent", provider: "mock", model: "deepseek-v4-flash-free" },
+  { name: "Big Pickle", desc: "Free", category: "Local", provider: "mock", model: "big-pickle" },
+  { name: "MiMo V2.5 Free", desc: "Free", category: "Local", provider: "mock", model: "mimo-v2.5-free" },
+  { name: "Nemotron 3 Ultra Free", desc: "Free", category: "Local", provider: "mock", model: "nemotron-3-ultra-free" },
+  { name: "North Mini Code Free", desc: "Free", category: "Local", provider: "mock", model: "north-mini-code-free" },
   { name: "Gemini 2.5 Flash", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash" },
   { name: "Gemini 2.5 Flash Preview TTS", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash-preview-tts" },
   { name: "Gemini 2.5 Flash-Lite", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash-lite" },
@@ -26,8 +26,6 @@ export const MODELS_LIST = [
 ];
 
 export const PROVIDERS_LIST = [
-  { name: "OpenCode Zen (Recommended)", desc: "", category: "Popular", selected: true },
-  { name: "OpenCode Go", desc: "Low cost subscription for everyone", category: "Popular" },
   { name: "OpenAI", desc: "(ChatGPT Plus/Pro or API key)", category: "Popular" },
   { name: "GitHub Copilot", desc: "", category: "Popular" },
   { name: "Anthropic", desc: "(API key)", category: "Popular" },
@@ -574,7 +572,6 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
       justifyContent="center"
       alignItems="center"
       flexShrink={0}
-      backgroundColor="rgba(0,0,0,0.7)"
     >
       <box
         width={55}
@@ -680,7 +677,8 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
   const [selectedIndex, setSelectedIndex] = React.useState(0);
 
   const handleSubmit = (val: string) => {
-    onSubmit(val);
+    if (!val.trim()) return;
+    onSubmit(val.trim());
     setValue("");
   };
 
@@ -874,7 +872,8 @@ export const SessionInput: React.FC<SessionInputProps> = ({
   const [selectedIndex, setSelectedIndex] = React.useState(0);
 
   const handleSubmit = (val: string) => {
-    onSubmit(val);
+    if (!val.trim()) return;
+    onSubmit(val.trim());
     setValue("");
   };
 
