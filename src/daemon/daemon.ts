@@ -566,7 +566,8 @@ export class HyprDaemon {
         // ── Phase 3: Recursive Test-Driven Self-Correction Loop ──
         if (turnEnded) {
           const directives = loadProjectDirectives();
-          if (directives.testCommand && this.retryCount < this.maxRetries) {
+          const runSelfCorrect = process.argv.includes("--self-correct") || process.env.HYPR_SELF_CORRECT === "true";
+          if (runSelfCorrect && directives.testCommand && this.retryCount < this.maxRetries) {
             // ── Epic 3: Pre-Flight Diagnostics Interceptor Gate ──
             const globalErrors = globalLspManager.getGlobalErrorCount();
             if (globalErrors > 0) {
