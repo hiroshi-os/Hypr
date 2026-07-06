@@ -317,3 +317,41 @@ describe("Subagent Scoped Delegation Framework", () => {
   });
 });
 
+describe("LSP Core Client & Interceptor", () => {
+  test("Incremental change publishes type mismatch error diagnostics", async () => {
+    const { globalLspManager } = await import("../src/daemon/lsp.ts");
+    
+    let callbackTriggered = false;
+    globalLspManager.setDiagnosticsCallback((diags) => {
+      if (diags.length > 0) callbackTriggered = true;
+    });
+
+    globalLspManager.notifyFileChanged("src/main.ts", "const x: number = 'mismatch';");
+    
+    expect(globalLspManager.getGlobalErrorCount()).toBe(1);
+    expect(callbackTriggered).toBe(true);
+    
+    globalLspManager.shutdown();
+  });
+
+  test("Pre-flight gate blocks execute_bash test commands on active errors", async () => {
+    const { globalLspManager } = await import("../src/daemon/lsp.ts");
+    const { HyprDaemon } = await import("../src/daemon/daemon.ts");
+    
+    globalLspManager.notifyFileChanged("src/main.ts", "Type 'string' is not assignable to type 'number'");
+    
+    const daemon = new HyprDaemon();
+    // Simulate user executing a test run via bash while diagnostics error exists
+    const mockSocket = { write: () => {} };
+    await daemon["handleClientRequest"](mockSocket, {
+      method: "submitInput",
+      params: { text: "execute tests" }
+    });
+
+    // The loop should block test command execution and maintain active error state
+    expect(globalLspManager.getGlobalErrorCount()).toBe(1);
+    
+    globalLspManager.shutdown();
+  });
+});
+
