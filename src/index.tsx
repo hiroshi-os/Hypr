@@ -395,8 +395,16 @@ const HyprApp: React.FC = () => {
   };
 
   return (
-    <box width="100%" height="100%">
-      {content}
+    <box width="100%" height="100%" flexDirection="column">
+      <box flexGrow={1} width="100%" height="100%">
+        {content}
+      </box>
+
+      {/* Footer bar showing working dir and version */}
+      <box flexDirection="row" width="100%" justifyContent="space-between" flexShrink={0} marginTop={1}>
+        <text fg="gray">{process.cwd()}:main</text>
+        <text fg="gray">1.15.7</text>
+      </box>
 
       {activePicker === "models" && (
         <PickerOverlay

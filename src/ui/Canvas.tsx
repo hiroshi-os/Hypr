@@ -26,8 +26,8 @@ export const MODELS_LIST = [
 ];
 
 export const AGENTS_LIST = [
-  { name: "Self", desc: "Inherits parent configuration", category: "Core Agents" },
-  { name: "Research", desc: "Research subagent with read-only tools", category: "Core Agents" },
+  { name: "Build", desc: "Orchestrates compilation and error validation", category: "Core Agents" },
+  { name: "Plan", desc: "Generates step-by-step implementation workflows", category: "Core Agents" },
   { name: "Code Architect", desc: "Specialist in structural refactoring", category: "Specialized" },
   { name: "Hardening Agent", desc: "Specialist in UI and styling polish", category: "Specialized" },
 ];
