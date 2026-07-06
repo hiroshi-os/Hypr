@@ -8,6 +8,7 @@ export const SLASH_COMMANDS = [
   { name: "/agents", desc: "Switch agent" },
   { name: "/connect", desc: "Connect provider" },
   { name: "/models", desc: "Switch model" },
+  { name: "/new", desc: "Start a fresh environment session" },
   { name: "/variant", desc: "Switch model variant" },
 ];
 
