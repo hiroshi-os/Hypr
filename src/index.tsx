@@ -72,6 +72,8 @@ if (Bun.argv[2] === "daemon") {
     const [connectedClients, setConnectedClients] = React.useState(1);
     const [activeWorkers, setActiveWorkers] = React.useState(4);
     const [activeDelegations, setActiveDelegations] = React.useState<any[]>([]);
+    const [activeServers, setActiveServers] = React.useState<any[]>([]);
+    const [globalErrorCount, setGlobalErrorCount] = React.useState(0);
 
     const socketRef = React.useRef<any>(null);
     const ctrlXActiveRef = React.useRef(false);
@@ -146,6 +148,8 @@ if (Bun.argv[2] === "daemon") {
                       setConnectedClients(p.connectedClients || 1);
                       setActiveWorkers(p.activeWorkers || 4);
                       setActiveDelegations(p.activeDelegations || []);
+                      setActiveServers(p.activeServers || []);
+                      setGlobalErrorCount(p.globalErrorCount || 0);
                     }
                   } catch (_) {}
                 }
@@ -291,6 +295,8 @@ if (Bun.argv[2] === "daemon") {
               connectedClients={connectedClients}
               activeWorkers={activeWorkers}
               activeDelegations={activeDelegations}
+              activeServers={activeServers}
+              globalErrorCount={globalErrorCount}
             />
           </box>
         </box>

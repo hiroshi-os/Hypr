@@ -15,6 +15,7 @@ import { connectMcpServerTool, dynamicMcpTools } from "../tools/mcpTool.ts";
 import { scanComplianceTool } from "../tools/complianceTool.ts";
 import { registerExtensionTool } from "../tools/extensionTool.ts";
 import { generateDiagnosticBundleTool } from "../tools/diagnosticTool.ts";
+import { getCodeDefinitionsTool } from "../tools/lspTools.ts";
 import { globalPersistence, SessionStateSnapshot } from "./persistence.ts";
 import { AGENTS_LIST } from "../ui/Canvas.tsx";
 import { ScopedSubagent } from "./subagent.ts";
@@ -36,6 +37,7 @@ const toolsList = [
   scanComplianceTool,
   registerExtensionTool,
   generateDiagnosticBundleTool,
+  getCodeDefinitionsTool,
 ];
 
 export const SOCKET_PATH = process.platform === "win32" ? "127.0.0.1" : "/tmp/hypr.sock";
@@ -205,6 +207,8 @@ export class HyprDaemon {
       activeWorkers: AGENTS_LIST.length,
       activeSessionIndex: this.activeSessionIndex,
       activeDelegations,
+      activeServers: globalLspManager.getActiveServers(),
+      globalErrorCount: globalLspManager.getGlobalErrorCount(),
     };
   }
 

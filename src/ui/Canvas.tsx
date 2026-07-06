@@ -170,6 +170,8 @@ export interface SidebarProps {
   connectedClients?: number;
   activeWorkers?: number;
   activeDelegations?: any[];
+  activeServers?: any[];
+  globalErrorCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -185,6 +187,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   connectedClients,
   activeWorkers,
   activeDelegations,
+  activeServers,
+  globalErrorCount,
 }) => {
   // Count approx tokens
   let totalChars = 0;
@@ -243,12 +247,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <text fg="gray">${spent} spent</text>
       </box>
 
-      <box flexDirection="column" marginBottom={1}>
-        <text fg={whiteColor} style={{ weight: "bold" }}>
-          LSP
-        </text>
-        <text fg="gray">LSPs will activate as files are read</text>
-      </box>
+      <FlatLspDiagnosticsPanel
+        activeServers={activeServers || []}
+        globalErrorCount={globalErrorCount || 0}
+      />
 
       {tasks.length > 0 && (
         <box flexDirection="column" marginBottom={1}>
@@ -1634,6 +1636,45 @@ export const FlatSubagentMeshTrack: React.FC<FlatSubagentMeshTrackProps> = ({
           </box>
         ))}
       </box>
+    </box>
+  );
+};
+
+export interface FlatLspDiagnosticsPanelProps {
+  activeServers: Array<{
+    name: string;
+    pid: number;
+    isReady: boolean;
+  }>;
+  globalErrorCount: number;
+}
+
+export const FlatLspDiagnosticsPanel: React.FC<FlatLspDiagnosticsPanelProps> = ({
+  activeServers,
+  globalErrorCount,
+}) => {
+  return (
+    <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
+      {/* Structural Title Track */}
+      <text fg="white" style={{ weight: "bold" }}>LSP Status Monitor</text>
+      
+      {/* Flat List of Active Running Server Systems */}
+      <box flexDirection="column" marginTop={1} paddingLeft={1} flexShrink={0}>
+        {activeServers.map((server) => (
+          <box key={server.name} flexDirection="row" width="100%" flexShrink={0}>
+            <text fg={server.isReady ? "brightGreen" : "yellow"}>• </text>
+            <text fg="white">{server.name.padEnd(16)}</text>
+            <text fg="gray"> [PID: {server.pid}]</text>
+          </box>
+        ))}
+      </box>
+
+      {/* Real-time Error Footprint Indicator without Box Outlines */}
+      {globalErrorCount > 0 && (
+        <box marginTop={1} backgroundColor="#3c1b1b" paddingLeft={1} paddingRight={1} width="100%" flexShrink={0}>
+          <text fg="brightRed" style={{ weight: "bold" }}>! {globalErrorCount} Active Type Conflicts Detected</text>
+        </box>
+      )}
     </box>
   );
 };
