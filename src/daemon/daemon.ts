@@ -85,10 +85,11 @@ export class HyprDaemon {
       });
     });
 
-    // Restore latest session if available (skip if running tests)
+    // Restore directory-specific session if available (skip if running tests)
     const isTest = process.env.NODE_ENV === "test" || process.env.BUN_ENV === "test";
     if (!isTest) {
-      const latest = globalPersistence.loadLatest();
+      this.sessionId = globalPersistence.getSessionIdForDirectory(process.cwd());
+      const latest = globalPersistence.loadSession(this.sessionId);
       if (latest) {
         this.messages = latest.messages;
         this.activeAgent = latest.activeAgent;
