@@ -591,6 +591,21 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const errorFg = dimmed ? "gray" : "brightRed";
   const infoFg = dimmed ? "gray" : "brightBlue";
 
+  if (message.role === "compliance") {
+    const fileScrubbed = message.fileScrubbed || "outbound payload";
+    return (
+      <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1}>
+        <box flexDirection="row" backgroundColor="yellow" paddingLeft={1} paddingRight={1} width="100%">
+          <text fg="black" style={{ weight: "bold" }}>⚠ PRIVACY REACTION: </text>
+          <text fg="black">Scrubbed sensitive tokens detected in <span style={{ weight: "bold" }}>{fileScrubbed}</span></text>
+        </box>
+        <box marginTop={1} paddingLeft={2}>
+          <text fg="gray">Outbound payload sanitized into cryptographic hashes before transmission.</text>
+        </box>
+      </box>
+    );
+  }
+
   if (message.role === "system") {
     if (Array.isArray(message.content)) {
       return (

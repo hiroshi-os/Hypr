@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as path from "path";
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { ConversationState, Message } from "./state/engine.ts";
@@ -74,6 +75,18 @@ const HyprApp: React.FC = () => {
       });
     })
   );
+
+  React.useEffect(() => {
+    clientRef.current.onScrub = (totalHits) => {
+      const complianceMsg: Message = {
+        role: "compliance",
+        content: `Scrubbed sensitive token(s)`,
+        fileScrubbed: "outbound payload"
+      };
+      stateRef.current.addMessage(complianceMsg);
+      setMessages([...stateRef.current.getMessages()]);
+    };
+  }, []);
 
   React.useEffect(() => {
     const directives = loadProjectDirectives();
@@ -203,6 +216,52 @@ const HyprApp: React.FC = () => {
               setStatus("executing_tool");
               setCurrentToolProgress(`Verifying permissions for ${tool.name}...`);
               const allowed = await gateRef.current.check(tool, call.input);
+
+              // ── Phase 4: Mode-Based Tool Execution Permission Restrictions ──
+              let modeBlocked = false;
+              let modeBlockReason = "";
+
+              if (activeAgent === "Plan") {
+                const allowedPlanTools = ["grep_search", "list_directory", "read_file", "view_code_outline"];
+                if (!allowedPlanTools.includes(tool.name)) {
+                  modeBlocked = true;
+                  modeBlockReason = `Plan Mode deactivates non-indexing tool executions to prevent structural drift.`;
+                }
+              } else if (activeAgent === "Hardening Agent") {
+                if (["write_file", "edit_file", "apply_multi_diff"].includes(tool.name)) {
+                  const pathsToCheck: string[] = [];
+                  if (tool.name === "apply_multi_diff" && call.input?.edits) {
+                    for (const ed of call.input.edits) {
+                      if (ed.path) pathsToCheck.push(ed.path);
+                    }
+                  } else if (call.input?.path) {
+                    pathsToCheck.push(call.input.path);
+                  } else if (call.input?.TargetFile) {
+                    pathsToCheck.push(call.input.TargetFile);
+                  }
+
+                  const isSecurityConfig = (p: string) => {
+                    const base = path.basename(p).toLowerCase();
+                    return base === "agents.md" || base === "agent.md" || base === ".gitignore" || p.includes(".agents");
+                  };
+
+                  const allSecurity = pathsToCheck.every(isSecurityConfig);
+                  if (!allSecurity) {
+                    modeBlocked = true;
+                    modeBlockReason = `Hardening Mode restricts file writes to security configuration files only.`;
+                  }
+                }
+              }
+
+              if (modeBlocked) {
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: call.id,
+                  content: `Mode Restriction: ${modeBlockReason}`,
+                  is_error: true
+                });
+                continue;
+              }
 
               // ── Phase 4: beforeToolCall lifecycle hook ──────────────────
               const hookResult = await globalPluginManager.runHook("beforeToolCall", { tool: tool.name, input: call.input });

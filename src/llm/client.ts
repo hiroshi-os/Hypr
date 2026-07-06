@@ -61,6 +61,7 @@ export class LLMClient {
   private apiKey?: string;
   private provider: "anthropic" | "gemini" | "mock" = "mock";
   private modelName: string = "";
+  public onScrub?: (totalHits: number) => void;
 
   constructor() {
     if (process.env.ANTHROPIC_API_KEY) {
@@ -97,6 +98,9 @@ export class LLMClient {
     const { messages: safeMessages, totalHits } = scrubMessages(messages);
     if (totalHits > 0) {
       process.stderr.write(`[scrubber] Redacted ${totalHits} secret(s) from outbound payload\n`);
+      if (this.onScrub) {
+        this.onScrub(totalHits);
+      }
     }
 
     if (this.provider === "mock") {

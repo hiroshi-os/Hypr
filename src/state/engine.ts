@@ -22,8 +22,9 @@ export interface ToolResultBlock {
 export type ContentBlock = TextContentBlock | ToolUseBlock | ToolResultBlock;
 
 export interface Message {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "compliance";
   content: string | ContentBlock[];
+  fileScrubbed?: string;
 }
 
 export class ConversationState {
