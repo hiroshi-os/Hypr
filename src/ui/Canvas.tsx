@@ -288,125 +288,157 @@ export const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
-  const [activeRipple, setActiveRipple] = React.useState<{
-    source: number;
-    step: number;
-  } | null>(null);
+  // ── palettes ──────────────────────────────────────────────────────────────
+  const RIPPLE_COLORS   = ["#ff7e33","#ff5e00","#ffa54f","#ffe4b5","#ffcc80","#ff6f20"];
+  const CHARGE_RING     = ["#e040fb","#ce93d8","#ab47bc","#7b1fa2","#f8bbd9","#ff80ab","#ea80fc","#d500f9"];
+  const EXPLODE_PALETTE = ["#ff1744","#ff6d00","#ffea00","#00e5ff","#69ff47","#ff4081","#7c4dff","#18ffff","#f50057","#aeea00"];
 
-  React.useEffect(() => {
-    if (!activeRipple) return;
-    if (activeRipple.step > 8) {
-      setActiveRipple(null);
-      return;
-    }
-    const timer = setTimeout(() => {
-      setActiveRipple((prev) =>
-        prev ? { ...prev, step: prev.step + 1 } : null,
-      );
-    }, 70);
-    return () => clearTimeout(timer);
-  }, [activeRipple]);
-
+  // ── letter glyphs ─────────────────────────────────────────────────────────
   // prettier-ignore
   const letters = [
-    // h
-    [
-      "█   ",
-      "█▀▀█",
-      "█__█",
-      "▀  ▀",
-    ],
-    // y
-    [
-      "    ",
-      "█  █",
-      "█▄▄█",
-      "▄▄▄█",
-    ],
-    // p
-    [
-      "    ",
-      "█▀▀▄",
-      "█▄▄▀",
-      "▀   ",
-    ],
-    // r
-    [
-      "    ",
-      "█▀▀▄",
-      "█   ",
-      "▀   ",
-    ],
-    // c
-    [
-      "    ",
-      "█▀▀▀",
-      "█___",
-      "▀▀▀▀",
-    ],
-    // o
-    [
-      "    ",
-      "█▀▀█",
-      "█^^█",
-      "▀▀▀▀",
-    ],
-    // d
-    [
-      "   ▄",
-      "█▀▀█",
-      "█__█",
-      "▀▀▀▀",
-    ],
-    // e
-    [
-      "    ",
-      "█▀▀█",
-      "█▀▀▀",
-      "▀▀▀▀",
-    ],
+    ["█   ","█▀▀█","█__█","▀  ▀"],  // h
+    ["    ","█  █","█▄▄█","▄▄▄█"],  // y
+    ["    ","█▀▀▄","█▄▄▀","▀   "],  // p
+    ["    ","█▀▀▄","█   ","▀   "],  // r
+    ["    ","█▀▀▀","█___","▀▀▀▀"],  // c
+    ["    ","█▀▀█","█^^█","▀▀▀▀"],  // o
+    ["   ▄","█▀▀█","█__█","▀▀▀▀"],  // d
+    ["    ","█▀▀█","█▀▀▀","▀▀▀▀"],  // e
   ];
 
-  return (
-    <box
-      flexDirection="column"
-      alignItems="center"
-      marginTop={4}
-      marginBottom={2}
-    >
-      <box flexDirection="row">
-        {letters.map((letterLines, idx) => {
-          let color = idx < 4 ? "gray" : "white";
-          if (dimmed) {
-            color = "gray";
-          } else if (activeRipple) {
-            const distance = Math.abs(idx - activeRipple.source);
-            if (distance === activeRipple.step) {
-              color = "#ff7e33"; // Wave peak (vibrant orange)
-            } else if (distance === activeRipple.step - 1) {
-              color = "#ffa54f"; // Trail 1 (warm peach)
-            } else if (distance === activeRipple.step - 2) {
-              color = "#ffe4b5"; // Trail 2 (fading light peach)
-            }
-          }
+  type Phase = "idle" | "ripple" | "charging" | "exploding";
+  const [phase, setPhase]           = React.useState<Phase>("idle");
+  const [source, setSource]         = React.useState(0);
+  const [tick, setTick]             = React.useState(0);
+  const [noiseSeed, setNoiseSeed]   = React.useState(0);
+  const phaseRef                    = React.useRef<Phase>("idle");
+  phaseRef.current                  = phase;
+  const boomRef                     = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chargeRef                   = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-          return (
-            <box
-              key={idx}
-              flexDirection="column"
-              marginRight={idx === 7 ? 0 : 1}
-              onMouseDown={() => {
-                setActiveRipple({ source: idx, step: 0 });
-              }}
-            >
-              {letterLines.map((line, lineIdx) => (
-                <text key={lineIdx} fg={color}>
-                  {line}
-                </text>
-              ))}
-            </box>
-          );
-        })}
+  // deterministic pseudo-random (seed-based, no Math.random in render)
+  const prng = (s: number) => Math.abs(Math.sin(s * 127.1 + 311.7) * 43758.5453) % 1;
+
+  // ── tick driver ─────────────────────────────────────────────────────────
+  React.useEffect(() => {
+    if (phase === "idle") return;
+    const id = setInterval(() => setTick((t) => t + 1), 55);
+    return () => clearInterval(id);
+  }, [phase]);
+
+  // ── ripple auto-end ──────────────────────────────────────────────────────
+  React.useEffect(() => {
+    if (phase !== "ripple") return;
+    const t = setTimeout(() => { setPhase("idle"); setTick(0); }, 850);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // ── explosion auto-end ───────────────────────────────────────────────────
+  React.useEffect(() => {
+    if (phase !== "exploding") return;
+    const t = setTimeout(() => { setPhase("idle"); setTick(0); }, 950);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  const triggerExplode = React.useCallback(() => {
+    if (boomRef.current)   clearTimeout(boomRef.current);
+    if (chargeRef.current) clearTimeout(chargeRef.current);
+    setTick(0);
+    setPhase("exploding");
+  }, []);
+
+  const handleMouseDown = (lIdx: number) => {
+    if (boomRef.current)   clearTimeout(boomRef.current);
+    if (chargeRef.current) clearTimeout(chargeRef.current);
+    setSource(lIdx);
+    setNoiseSeed(Date.now() % 9999);
+    setTick(0);
+    setPhase("ripple");
+    // transition to charging after 200 ms if still held
+    chargeRef.current = setTimeout(() => {
+      if (phaseRef.current !== "idle") { setPhase("charging"); setTick(0); }
+    }, 200);
+    // auto-explode after 3 s
+    boomRef.current = setTimeout(triggerExplode, 3000);
+  };
+
+  const handleMouseUp = () => {
+    if (boomRef.current)   clearTimeout(boomRef.current);
+    if (chargeRef.current) clearTimeout(chargeRef.current);
+    if (phaseRef.current === "charging" || phaseRef.current === "ripple") {
+      triggerExplode();
+    }
+  };
+
+  // ── per-char color resolver (called inside render) ────────────────────────
+  const getColor = (lIdx: number, rowIdx: number, colIdx: number, ch: string): string => {
+    const base = lIdx < 4 ? "#52525b" : "#a1a1aa";
+    if (dimmed) return "#3f3f46";
+    if (ch === " ") return base;
+
+    // unique char index for noise
+    const ci = lIdx * 16 + rowIdx * 4 + colIdx;
+    const noise = (prng(ci + noiseSeed) * 2 - 1); // -1..1
+
+    if (phase === "ripple") {
+      const dist = Math.abs(lIdx - source);
+      const noiseShift = noise > 0.5 ? 1 : noise < -0.5 ? -1 : 0;
+      const effDist = Math.max(0, dist + noiseShift);
+      if (effDist === tick)        return RIPPLE_COLORS[Math.floor(prng(ci) * 3)];
+      if (effDist === tick - 1)    return RIPPLE_COLORS[3 + Math.floor(prng(ci + 1) * 3)];
+      if (effDist === tick - 2)    return "#ffe4b5";
+      return base;
+    }
+
+    if (phase === "charging") {
+      if (lIdx === source) {
+        // spinning ring: position + row/col blend around the letter
+        const angle = (tick * 1.3 + rowIdx * 2.5 + colIdx * 1.7) % CHARGE_RING.length;
+        return CHARGE_RING[Math.floor(angle)];
+      }
+      // distant letters pulse faintly
+      const faint = prng(ci + tick * 7) > 0.88;
+      return faint ? CHARGE_RING[Math.floor(prng(ci + tick) * CHARGE_RING.length)] : base;
+    }
+
+    if (phase === "exploding") {
+      const dist = Math.abs(lIdx - source);
+      // char-level distance: each row is a step
+      const charDist = dist * 4 + rowIdx;
+      const wave = tick * 2.2;
+      const inWave = charDist <= wave && charDist >= wave - 5;
+      if (inWave) return EXPLODE_PALETTE[(ci + tick) % EXPLODE_PALETTE.length];
+      // aftermath noise: chars that the wave has passed flicker briefly
+      if (charDist < wave - 5 && tick < 12 && prng(ci + tick * 3) > 0.72) {
+        return EXPLODE_PALETTE[(ci + tick * 2) % EXPLODE_PALETTE.length];
+      }
+      return base;
+    }
+
+    return base;
+  };
+
+  // ── render ────────────────────────────────────────────────────────────────
+  return (
+    <box flexDirection="column" alignItems="center" marginTop={4} marginBottom={2}>
+      <box flexDirection="row">
+        {letters.map((letterLines, lIdx) => (
+          <box
+            key={lIdx}
+            flexDirection="column"
+            marginRight={lIdx === 7 ? 0 : 1}
+            onMouseDown={() => handleMouseDown(lIdx)}
+            onMouseUp={handleMouseUp}
+          >
+            {letterLines.map((line, rowIdx) => (
+              <box key={rowIdx} flexDirection="row">
+                {line.split("").map((ch, colIdx) => (
+                  <text key={colIdx} fg={getColor(lIdx, rowIdx, colIdx, ch)}>{ch}</text>
+                ))}
+              </box>
+            ))}
+          </box>
+        ))}
       </box>
     </box>
   );
