@@ -398,3 +398,56 @@ describe("Local Vector Indexer & Semantic Search", () => {
   });
 });
 
+describe("Multi-Provider Config & Payload Translation", () => {
+  test("JSONC store parses, modifies, and serializes config configurations", async () => {
+    const { globalConfigManager } = await import("../src/daemon/config.ts");
+    
+    globalConfigManager.setProvider("openai");
+    let cfg = globalConfigManager.getConfig();
+    expect(cfg.current_provider).toBe("openai");
+    expect(cfg.current_model).toBe("gpt-4o");
+
+    globalConfigManager.setKey("openai", "test-key-abc");
+    expect(globalConfigManager.getApiKey("openai")).toBe("test-key-abc");
+  });
+
+  test("Environment variables override configuration file keys", async () => {
+    const { globalConfigManager } = await import("../src/daemon/config.ts");
+    
+    process.env.ANTHROPIC_API_KEY = "env-auth-token";
+    expect(globalConfigManager.getApiKey("anthropic")).toBe("env-auth-token");
+    
+    delete process.env.ANTHROPIC_API_KEY;
+  });
+
+  test("Outbound payloads translate correctly for Anthropic formats", async () => {
+    const { translatePayload } = await import("../src/llm/translator.ts");
+    
+    const samplePayload = {
+      systemPrompt: "system instruction",
+      messages: [{ role: "user", content: "user message text" }],
+      model: "claude-3-5-sonnet"
+    };
+
+    const res = translatePayload("anthropic", samplePayload);
+    expect(res.model).toBe("claude-3-5-sonnet");
+    expect(res.system).toBe("system instruction");
+    expect(res.messages[0].role).toBe("user");
+    expect(res.messages[0].content).toBe("user message text");
+  });
+
+  test("Outbound payloads translate correctly for Gemini formats", async () => {
+    const { translatePayload } = await import("../src/llm/translator.ts");
+    
+    const samplePayload = {
+      systemPrompt: "system instruction",
+      messages: [{ role: "user", content: "user message text" }],
+      model: "gemini-2.5-pro"
+    };
+
+    const res = translatePayload("google gemini", samplePayload);
+    expect(res.systemInstruction.parts[0].text).toBe("system instruction");
+    expect(res.contents[0].parts[0].text).toBe("user message text");
+  });
+});
+
