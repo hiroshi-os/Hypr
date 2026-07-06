@@ -7,6 +7,7 @@ import { applyMultiDiffTool } from "../src/tools/multiDiffTool.ts";
 import { globalScheduler } from "../src/state/scheduler.ts";
 import { LogRingBuffer } from "../src/tools/bashTool.ts";
 import { MCPClient } from "../src/mcp/client.ts";
+import { LLMClient } from "../src/llm/client.ts";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -143,5 +144,14 @@ describe("MCP Client Protocol Instantiation", () => {
   test("Create client structure", () => {
     const client = new MCPClient("node", ["some-server.js"]);
     expect(client).toBeDefined();
+  });
+});
+
+describe("LLMClient Model & Provider Switching", () => {
+  test("Modify provider and model configuration", () => {
+    const client = new LLMClient();
+    client.setProvider("gemini");
+    client.setModelName("gemini-2.5-pro");
+    expect(client.getProviderName()).toBe("gemini");
   });
 });

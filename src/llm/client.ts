@@ -80,6 +80,14 @@ export class LLMClient {
     return this.provider;
   }
 
+  setProvider(provider: "anthropic" | "gemini" | "mock") {
+    this.provider = provider;
+  }
+
+  setModelName(modelName: string) {
+    this.modelName = modelName;
+  }
+
   async sendRequest(
     systemPrompt: string,
     messages: Message[],

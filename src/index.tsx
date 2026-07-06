@@ -15,7 +15,7 @@ import { registerExtensionTool } from "./tools/extensionTool.ts";
 import { generateDiagnosticBundleTool } from "./tools/diagnosticTool.ts";
 import { globalPluginManager, PluginLog } from "./plugins/manager.ts";
 import { loadProjectDirectives } from "./config/directives.ts";
-import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo } from "./ui/Canvas.tsx";
+import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo, PickerOverlay, MODELS_LIST, AGENTS_LIST } from "./ui/Canvas.tsx";
 
 const toolsList = [
   readFileTool,
@@ -43,6 +43,16 @@ const HyprApp: React.FC = () => {
   const [tasks, setTasks] = React.useState(globalScheduler.getTasks());
   const [rulesFound, setRulesFound] = React.useState(false);
   const [pluginLogs, setPluginLogs] = React.useState<PluginLog[]>([]);
+  const [activePicker, setActivePicker] = React.useState<"models" | "agents" | null>(null);
+  const [activeAgent, setActiveAgent] = React.useState("Self");
+  const [currentModelName, setCurrentModelName] = React.useState("");
+
+  React.useEffect(() => {
+    const provider = clientRef.current.getProviderName();
+    const name = provider === "anthropic" ? "Claude 3.5 Sonnet" : 
+                 provider === "gemini" ? "Gemini 2.5 Flash" : "GPT-5.2 Codex";
+    setCurrentModelName(name);
+  }, []);
 
   const stateRef = React.useRef<ConversationState>(new ConversationState());
   const permissionResolverRef = React.useRef<((allowed: boolean) => void) | null>(null);
@@ -75,8 +85,45 @@ const HyprApp: React.FC = () => {
   const handleUserInput = async (text: string) => {
     if (status !== "idle") return;
 
-    if (text.trim().toLowerCase() === "exit" || text.trim().toLowerCase() === "quit") {
+    const trimmed = text.trim();
+    const lower = trimmed.toLowerCase();
+
+    if (lower === "exit" || lower === "quit" || lower === "/exit") {
       process.exit(0);
+    }
+
+    if (lower === "/new") {
+      stateRef.current = new ConversationState();
+      setMessages([]);
+      return;
+    }
+
+    if (lower === "/models") {
+      setActivePicker("models");
+      return;
+    }
+
+    if (lower === "/agents") {
+      setActivePicker("agents");
+      return;
+    }
+
+    if (lower === "/help") {
+      const helpText = "Available Slash Commands:\n" +
+        "  /agents    Switch agent\n" +
+        "  /connect   Connect provider\n" +
+        "  /editor    Open editor\n" +
+        "  /exit      Exit the app\n" +
+        "  /help      Help info\n" +
+        "  /init      guided AGENTS.md setup\n" +
+        "  /mcps      Toggle MCPs\n" +
+        "  /models    Switch model\n" +
+        "  /new       New session\n" +
+        "  /review    review changes";
+      const helpMsg: Message = { role: "system", content: helpText };
+      stateRef.current.addMessage(helpMsg);
+      setMessages([...stateRef.current.getMessages()]);
+      return;
     }
 
     const userMsg: Message = { role: "user", content: text };
@@ -208,64 +255,116 @@ const HyprApp: React.FC = () => {
   };
 
   const provider = clientRef.current.getProviderName();
-  const modelName = provider === "anthropic" ? "Claude 3.5 Sonnet" : 
-                    provider === "gemini" ? "Gemini 2.5 Flash" : "GPT-5.2 Codex";
-
   const hasSession = messages.length > 0;
 
-  // Welcome screen: centered logo + input, no sidebar
+  let content;
   if (!hasSession && status === "idle") {
-    return (
+    content = (
       <box flexDirection="column" width="100%" height="100%" alignItems="center">
         <box flexGrow={1} />
         <WelcomeLogo />
-        <box width={85} marginBottom={4}>
-          <InteractiveInput onSubmit={handleUserInput} modelName={modelName} />
+        <box width={85} marginBottom={4} flexShrink={0}>
+          <InteractiveInput
+            onSubmit={handleUserInput}
+            modelName={currentModelName}
+            onOpenModelPicker={() => setActivePicker("models")}
+            onOpenAgentPicker={() => setActivePicker("agents")}
+          />
         </box>
         <box flexGrow={2} />
       </box>
     );
-  }
+  } else {
+    content = (
+      <box flexDirection="row" width="100%" height="100%">
+        {/* Left Column: Chat Stream & Active Input Bar */}
+        <box flexDirection="column" width="75%" paddingRight={4}>
+          <box flexDirection="column" flexGrow={1} overflowY="scroll">
+            {messages.map((msg, i) => (
+              <ChatMessage key={i} message={msg} />
+            ))}
 
-  // Active session: two-column flat layout
-  return (
-    <box flexDirection="row" width="100%" height="100%">
-      {/* Left Column: Chat Stream & Active Input Bar */}
-      <box flexDirection="column" width="75%" paddingRight={4}>
-        <box flexDirection="column" flexGrow={1} overflowY="scroll">
-          {messages.map((msg, i) => (
-            <ChatMessage key={i} message={msg} />
-          ))}
+            {(status === "thinking" || status === "executing_tool") && (
+              <box paddingLeft={2} marginBottom={1}>
+                <text fg="yellow" style={{ italic: true }}>Thinking: </text>
+                <text fg="gray">{status === "executing_tool" ? currentToolProgress : "Processing your request..."}</text>
+              </box>
+            )}
+          </box>
 
-          {(status === "thinking" || status === "executing_tool") && (
-            <box paddingLeft={2} marginBottom={1}>
-              <text fg="yellow" style={{ italic: true }}>Thinking: </text>
-              <text fg="gray">{status === "executing_tool" ? currentToolProgress : "Processing your request..."}</text>
+          {status === "prompting_permission" && (
+            <PermissionPrompt message={permissionMsg} onDecision={handlePermissionDecision} />
+          )}
+
+          {status === "idle" && (
+            <box flexShrink={0}>
+              <SessionInput
+                onSubmit={handleUserInput}
+                modelName={currentModelName}
+                status="idle"
+                onOpenModelPicker={() => setActivePicker("models")}
+                onOpenAgentPicker={() => setActivePicker("agents")}
+              />
             </box>
           )}
         </box>
 
-        {status === "prompting_permission" && (
-          <PermissionPrompt message={permissionMsg} onDecision={handlePermissionDecision} />
-        )}
-
-        {status === "idle" && (
-          <SessionInput onSubmit={handleUserInput} modelName={modelName} status="idle" />
-        )}
+        {/* Right Column: Borderless Context HUD */}
+        <box width="25%">
+          <Sidebar
+            tasks={tasks}
+            modelName={currentModelName}
+            provider={provider}
+            cwd={process.cwd()}
+            rulesFound={rulesFound}
+            pluginLogs={pluginLogs}
+            messages={messages}
+            activeAgent={activeAgent}
+          />
+        </box>
       </box>
+    );
+  }
 
-      {/* Right Column: Borderless Context HUD */}
-      <box width="25%">
-        <Sidebar
-          tasks={tasks}
-          modelName={modelName}
-          provider={provider}
-          cwd={process.cwd()}
-          rulesFound={rulesFound}
-          pluginLogs={pluginLogs}
-          messages={messages}
+  const handleSelectModel = (model: any) => {
+    clientRef.current.setProvider(model.provider as any);
+    clientRef.current.setModelName(model.model);
+    setCurrentModelName(model.name);
+    setActivePicker(null);
+  };
+
+  const handleSelectAgent = (agent: any) => {
+    setActiveAgent(agent.name);
+    setActivePicker(null);
+    const systemMsg: Message = {
+      role: "system",
+      content: `System: Active agent switched to ${agent.name}`
+    };
+    stateRef.current.addMessage(systemMsg);
+    setMessages([...stateRef.current.getMessages()]);
+  };
+
+  return (
+    <box width="100%" height="100%">
+      {content}
+
+      {activePicker === "models" && (
+        <PickerOverlay
+          title="Model Selection"
+          items={MODELS_LIST}
+          onSelect={handleSelectModel}
+          onClose={() => setActivePicker(null)}
         />
-      </box>
+      )}
+
+      {activePicker === "agents" && (
+        <PickerOverlay
+          title="Agent Selection"
+          items={AGENTS_LIST}
+          onSelect={handleSelectAgent}
+          onClose={() => setActivePicker(null)}
+        />
+      )}
     </box>
   );
 };

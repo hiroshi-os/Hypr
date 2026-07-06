@@ -1,7 +1,36 @@
 import * as React from "react";
+import { useKeyboard } from "@opentui/react";
 import { TaskNode } from "../state/scheduler.ts";
 import { Message, ContentBlock } from "../state/engine.ts";
 import { PluginLog } from "../plugins/manager.ts";
+
+export const SLASH_COMMANDS = [
+  { name: "/agents", desc: "Switch agent" },
+  { name: "/connect", desc: "Connect provider" },
+  { name: "/editor", desc: "Open editor" },
+  { name: "/exit", desc: "Exit the app" },
+  { name: "/help", desc: "Help" },
+  { name: "/init", desc: "guided AGENTS.md setup" },
+  { name: "/mcps", desc: "Toggle MCPs" },
+  { name: "/models", desc: "Switch model" },
+  { name: "/new", desc: "New session" },
+  { name: "/review", desc: "review changes [commit|branch|pr], defaults to uncommitted" },
+];
+
+export const MODELS_LIST = [
+  { name: "Claude 3.5 Sonnet", desc: "Claude 3.5 Sonnet model", category: "OpenCode Zen", provider: "anthropic", model: "claude-3-5-sonnet-20241022" },
+  { name: "Claude 3 Opus", desc: "Claude 3 Opus model", category: "OpenCode Zen", provider: "anthropic", model: "claude-3-opus-20240229" },
+  { name: "Gemini 2.5 Flash", desc: "Gemini 2.5 Flash model", category: "Google", provider: "gemini", model: "gemini-2.5-flash" },
+  { name: "Gemini 2.5 Pro", desc: "Gemini 2.5 Pro model", category: "Google", provider: "gemini", model: "gemini-2.5-pro" },
+  { name: "GPT-5.2 Codex", desc: "Mock LLM", category: "Recent", provider: "mock", model: "gpt-5.2-codex" },
+];
+
+export const AGENTS_LIST = [
+  { name: "Self", desc: "Inherits parent configuration", category: "Core Agents" },
+  { name: "Research", desc: "Research subagent with read-only tools", category: "Core Agents" },
+  { name: "Code Architect", desc: "Specialist in structural refactoring", category: "Specialized" },
+  { name: "Hardening Agent", desc: "Specialist in UI and styling polish", category: "Specialized" },
+];
 
 export interface SidebarProps {
   tasks: TaskNode[];
@@ -11,6 +40,7 @@ export interface SidebarProps {
   rulesFound: boolean;
   pluginLogs?: PluginLog[];
   messages?: Message[];
+  activeAgent?: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -21,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   rulesFound,
   pluginLogs,
   messages,
+  activeAgent,
 }) => {
   // Count approx tokens
   let totalChars = 0;
@@ -112,6 +143,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <box flexDirection="column" marginBottom={1}>
         <text fg="gray">{cwd}</text>
+        <text fg="gray">Agent: <span fg="white">{activeAgent || "Self"}</span></text>
+        <text fg="gray">Model: <span fg="white">{modelName}</span></text>
         <text fg="yellow">• Hypr 3.0.0</text>
       </box>
     </box>
@@ -323,49 +356,263 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   );
 };
 
+export interface PickerOverlayProps {
+  title: string;
+  items: { name: string; desc: string; category: string }[];
+  onSelect: (item: any) => void;
+  onClose: () => void;
+}
+
+export const PickerOverlay: React.FC<PickerOverlayProps> = ({
+  title,
+  items,
+  onSelect,
+  onClose,
+}) => {
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+
+  useKeyboard((e) => {
+    if (e.name === "down") {
+      setSelectedIndex((prev) => (prev + 1) % items.length);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.name === "up") {
+      setSelectedIndex((prev) => (prev - 1 + items.length) % items.length);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.name === "escape") {
+      onClose();
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.name === "enter") {
+      onSelect(items[selectedIndex]);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.ctrl && e.name === "a") {
+      // Connect provider
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.ctrl && e.name === "f") {
+      // Favorite
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
+  const categories = Array.from(new Set(items.map((i) => i.category)));
+
+  return (
+    <box
+      position="absolute"
+      top={0}
+      left={0}
+      width="100%"
+      height="100%"
+      justifyContent="center"
+      alignItems="center"
+      flexShrink={0}
+    >
+      <box
+        width={55}
+        flexDirection="column"
+        backgroundColor="#161618"
+        paddingY={1}
+        paddingX={2}
+        flexShrink={0}
+      >
+        {/* Header */}
+        <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
+          <text fg="white" style={{ weight: "bold" }}>
+            {title}
+          </text>
+          <text fg="gray">esc</text>
+        </box>
+
+        {/* Categories and List Items */}
+        <box flexDirection="column">
+          {categories.map((cat) => {
+            const catItems = items.filter((i) => i.category === cat);
+            return (
+              <box key={cat} flexDirection="column" marginBottom={1}>
+                <text fg="brightBlue" style={{ weight: "bold" }}>
+                  {cat}
+                </text>
+                {catItems.map((item) => {
+                  const absIndex = items.indexOf(item);
+                  const isSelected = absIndex === selectedIndex;
+                  return (
+                    <box
+                      key={item.name}
+                      flexDirection="row"
+                      backgroundColor={isSelected ? "#e8a838" : undefined}
+                      paddingLeft={1}
+                    >
+                      <text fg={isSelected ? "black" : "white"}>
+                        {isSelected ? "• " : "  "}
+                        <span style={{ weight: "bold" }}>{item.name}</span>
+                        {"   "}
+                        <span fg={isSelected ? "black" : "gray"}>{item.desc}</span>
+                      </text>
+                    </box>
+                  );
+                })}
+              </box>
+            );
+          })}
+        </box>
+
+        {/* Footer shortcuts */}
+        <box marginTop={1} flexDirection="row" gap={2}>
+          <text fg="gray">
+            Connect provider <span fg="white">ctrl+a</span>   
+          </text>
+          <text fg="gray">
+            Favorite <span fg="white">ctrl+f</span>
+          </text>
+        </box>
+      </box>
+    </box>
+  );
+};
+
 export interface InteractiveInputProps {
   onSubmit: (text: string) => void;
   modelName: string;
+  onOpenModelPicker: () => void;
+  onOpenAgentPicker: () => void;
 }
 
 export const InteractiveInput: React.FC<InteractiveInputProps> = ({
   onSubmit,
   modelName,
+  onOpenModelPicker,
+  onOpenAgentPicker,
 }) => {
   const [value, setValue] = React.useState("");
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
 
   const handleSubmit = (val: string) => {
     onSubmit(val);
     setValue("");
   };
 
+  const trimmed = value.trim();
+  const showSlashMenu = trimmed.startsWith("/") && !trimmed.includes(" ");
+
+  const filteredCommands = SLASH_COMMANDS.filter((cmd) =>
+    cmd.name.toLowerCase().startsWith(trimmed.toLowerCase())
+  );
+
+  const activeIndex = Math.min(
+    selectedIndex,
+    Math.max(0, filteredCommands.length - 1)
+  );
+
+  useKeyboard((e) => {
+    if (showSlashMenu && filteredCommands.length > 0) {
+      if (e.name === "down") {
+        setSelectedIndex((prev) => (prev + 1) % filteredCommands.length);
+        e.preventDefault();
+        e.stopPropagation();
+      } else if (e.name === "up") {
+        setSelectedIndex(
+          (prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length
+        );
+        e.preventDefault();
+        e.stopPropagation();
+      } else if (e.name === "return" || e.name === "enter" || e.name === "tab") {
+        const selected = filteredCommands[activeIndex];
+        if (selected) {
+          setValue(selected.name + " ");
+          setSelectedIndex(0);
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    } else {
+      if (e.name === "tab") {
+        onOpenAgentPicker();
+        e.preventDefault();
+        e.stopPropagation();
+      } else if (e.ctrl && e.name === "p") {
+        onOpenModelPicker();
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  });
+
   return (
     <box flexDirection="column" width="100%">
-      {/* Input area with left cyan accent bar and flat zinc bg */}
-      <box flexDirection="row" width="100%" backgroundColor="#202024">
-        <box flexDirection="column" width={1}>
-          <text fg="brightCyan">▏</text>
-          <text fg="brightCyan">▏</text>
-        </box>
-        <box
-          flexDirection="column"
-          flexGrow={1}
-          paddingY={1}
-          paddingLeft={1}
-          paddingRight={1}
-        >
-          <input
-            focused={true}
-            value={value}
-            onChange={setValue}
-            onSubmit={handleSubmit}
-            placeholder='Ask anything... "What is the tech stack of this project?"'
-          />
-          <box marginTop={1} flexDirection="row">
-            <text fg="cyan">Sisyphus</text>
-            <text fg="white"> {modelName} (OAuth)</text>
-            <text fg="gray"> OpenAI · </text>
-            <text fg="#e8a838">medium</text>
+      <box width="100%" position="relative">
+        {showSlashMenu && filteredCommands.length > 0 && (
+          <box
+            position="absolute"
+            bottom={4}
+            left={0}
+            width="100%"
+            backgroundColor="#202024"
+            flexShrink={0}
+            paddingY={1}
+            paddingLeft={2}
+            paddingRight={2}
+          >
+            {filteredCommands.map((cmd, idx) => {
+              const isSelected = idx === activeIndex;
+              return (
+                <box
+                  key={cmd.name}
+                  flexDirection="row"
+                  backgroundColor={isSelected ? "#e8a838" : undefined}
+                  paddingX={1}
+                >
+                  <text
+                    fg={isSelected ? "black" : "white"}
+                    style={{ weight: "bold" }}
+                  >
+                    {cmd.name.padEnd(12)}
+                  </text>
+                  <text fg={isSelected ? "black" : "gray"}>
+                    {cmd.desc}
+                  </text>
+                </box>
+              );
+            })}
+          </box>
+        )}
+
+        {/* Input area with left cyan accent bar and flat zinc bg */}
+        <box flexDirection="row" width="100%" backgroundColor="#202024" flexShrink={0}>
+          <box flexDirection="column" width={1}>
+            <text fg="brightCyan">▏</text>
+            <text fg="brightCyan">▏</text>
+            <text fg="brightCyan">▏</text>
+            <text fg="brightCyan">▏</text>
+            <text fg="brightCyan">▏</text>
+          </box>
+          <box
+            flexDirection="column"
+            flexGrow={1}
+            paddingY={1}
+            paddingLeft={1}
+            paddingRight={1}
+          >
+            <input
+              focused={true}
+              value={value}
+              onInput={(val) => {
+                setValue(val);
+                setSelectedIndex(0);
+              }}
+              onSubmit={handleSubmit}
+              placeholder='Ask anything... "What is the tech stack of this project?"'
+            />
+            <box marginTop={1} flexDirection="row">
+              <text fg="cyan">Sisyphus</text>
+              <text fg="white"> {modelName} (OAuth)</text>
+              <text fg="gray"> OpenAI · </text>
+              <text fg="#e8a838">medium</text>
+            </box>
           </box>
         </box>
       </box>
@@ -399,6 +646,8 @@ export interface SessionInputProps {
   modelName: string;
   status: string;
   elapsed?: string;
+  onOpenModelPicker: () => void;
+  onOpenAgentPicker: () => void;
 }
 
 export const SessionInput: React.FC<SessionInputProps> = ({
@@ -406,13 +655,62 @@ export const SessionInput: React.FC<SessionInputProps> = ({
   modelName,
   status,
   elapsed,
+  onOpenModelPicker,
+  onOpenAgentPicker,
 }) => {
   const [value, setValue] = React.useState("");
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
 
   const handleSubmit = (val: string) => {
     onSubmit(val);
     setValue("");
   };
+
+  const trimmed = value.trim();
+  const showSlashMenu = trimmed.startsWith("/") && !trimmed.includes(" ");
+
+  const filteredCommands = SLASH_COMMANDS.filter((cmd) =>
+    cmd.name.toLowerCase().startsWith(trimmed.toLowerCase())
+  );
+
+  const activeIndex = Math.min(
+    selectedIndex,
+    Math.max(0, filteredCommands.length - 1)
+  );
+
+  useKeyboard((e) => {
+    if (showSlashMenu && filteredCommands.length > 0) {
+      if (e.name === "down") {
+        setSelectedIndex((prev) => (prev + 1) % filteredCommands.length);
+        e.preventDefault();
+        e.stopPropagation();
+      } else if (e.name === "up") {
+        setSelectedIndex(
+          (prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length
+        );
+        e.preventDefault();
+        e.stopPropagation();
+      } else if (e.name === "return" || e.name === "enter" || e.name === "tab") {
+        const selected = filteredCommands[activeIndex];
+        if (selected) {
+          setValue(selected.name + " ");
+          setSelectedIndex(0);
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    } else {
+      if (e.name === "tab") {
+        onOpenAgentPicker();
+        e.preventDefault();
+        e.stopPropagation();
+      } else if (e.ctrl && e.name === "p") {
+        onOpenModelPicker();
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  });
 
   return (
     <box flexDirection="column" width="100%">
@@ -428,18 +726,61 @@ export const SessionInput: React.FC<SessionInputProps> = ({
         </box>
       )}
 
-      {/* Compact input with left cyan accent bar and flat zinc bg */}
-      <box flexDirection="row" width="100%" backgroundColor="#202024">
-        <box flexDirection="column" width={1}>
-          <text fg="brightCyan">▏</text>
-        </box>
-        <box flexGrow={1} paddingY={1} paddingLeft={1} paddingRight={1}>
-          <input
-            focused={true}
-            value={value}
-            onChange={setValue}
-            onSubmit={handleSubmit}
-          />
+      <box width="100%" position="relative">
+        {showSlashMenu && filteredCommands.length > 0 && (
+          <box
+            position="absolute"
+            bottom={3}
+            left={0}
+            width="100%"
+            backgroundColor="#202024"
+            flexShrink={0}
+            paddingY={1}
+            paddingLeft={2}
+            paddingRight={2}
+          >
+            {filteredCommands.map((cmd, idx) => {
+              const isSelected = idx === activeIndex;
+              return (
+                <box
+                  key={cmd.name}
+                  flexDirection="row"
+                  backgroundColor={isSelected ? "#e8a838" : undefined}
+                  paddingX={1}
+                >
+                  <text
+                    fg={isSelected ? "black" : "white"}
+                    style={{ weight: "bold" }}
+                  >
+                    {cmd.name.padEnd(12)}
+                  </text>
+                  <text fg={isSelected ? "black" : "gray"}>
+                    {cmd.desc}
+                  </text>
+                </box>
+              );
+            })}
+          </box>
+        )}
+
+        {/* Compact input with left cyan accent bar and flat zinc bg */}
+        <box flexDirection="row" width="100%" backgroundColor="#202024" flexShrink={0}>
+          <box flexDirection="column" width={1}>
+            <text fg="brightCyan">▏</text>
+            <text fg="brightCyan">▏</text>
+            <text fg="brightCyan">▏</text>
+          </box>
+          <box flexGrow={1} paddingY={1} paddingLeft={1} paddingRight={1}>
+            <input
+              focused={true}
+              value={value}
+              onInput={(val) => {
+                setValue(val);
+                setSelectedIndex(0);
+              }}
+              onSubmit={handleSubmit}
+            />
+          </box>
         </box>
       </box>
 
