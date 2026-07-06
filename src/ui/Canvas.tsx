@@ -267,20 +267,102 @@ export interface ChatMessageProps {
   message: Message;
 }
 
+interface DiffLine {
+  type: "add" | "del" | "ctx";
+  num: number;
+  content: string;
+}
+
+function buildSimpleDiff(search: string, replace: string): DiffLine[] {
+  const diffLines: DiffLine[] = [];
+  const searchLines = search.split("\n");
+  const replaceLines = replace.split("\n");
+  
+  let lineNum = 1;
+  for (const line of searchLines) {
+    diffLines.push({ type: "del", num: lineNum++, content: line });
+  }
+  lineNum = 1;
+  for (const line of replaceLines) {
+    diffLines.push({ type: "add", num: lineNum++, content: line });
+  }
+  return diffLines;
+}
+
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   if (message.role === "system") {
+    if (Array.isArray(message.content)) {
+      return (
+        <box flexDirection="column" marginBottom={1} paddingLeft={2}>
+          {message.content.map((block: ContentBlock, idx: number) => {
+            if (block.type === "tool_result") {
+              if (block.is_error) {
+                return (
+                  <box
+                    key={idx}
+                    flexDirection="column"
+                    marginTop={1}
+                    padding={1}
+                    backgroundColor="#3c1b1b"
+                    flexShrink={0}
+                  >
+                    <text fg="brightRed" style={{ weight: "bold" }}>Error</text>
+                    <text fg="white">{block.content}</text>
+                  </box>
+                );
+              }
+              return (
+                <box key={idx} paddingLeft={2} marginBottom={1} flexShrink={0}>
+                  <text fg="green">✓ Success</text>
+                </box>
+              );
+            }
+            return null;
+          })}
+        </box>
+      );
+    }
     return (
       <box marginBottom={1} paddingLeft={2}>
         <text fg="gray" style={{ italic: true }}>
-          {typeof message.content === "string"
-            ? message.content
-            : JSON.stringify(message.content)}
+          {message.content}
         </text>
       </box>
     );
   }
 
   if (message.role === "user") {
+    if (Array.isArray(message.content) && message.content.some((c) => c.type === "tool_result")) {
+      return (
+        <box flexDirection="column" marginBottom={1} paddingLeft={2}>
+          {message.content.map((block: ContentBlock, idx: number) => {
+            if (block.type === "tool_result") {
+              if (block.is_error) {
+                return (
+                  <box
+                    key={idx}
+                    flexDirection="column"
+                    marginTop={1}
+                    padding={1}
+                    backgroundColor="#3c1b1b"
+                    flexShrink={0}
+                  >
+                    <text fg="brightRed" style={{ weight: "bold" }}>Error</text>
+                    <text fg="white">{block.content}</text>
+                  </box>
+                );
+              }
+              return (
+                <box key={idx} paddingLeft={2} marginBottom={1} flexShrink={0}>
+                  <text fg="green">✓ Success</text>
+                </box>
+              );
+            }
+            return null;
+          })}
+        </box>
+      );
+    }
     return (
       <box flexDirection="column" marginBottom={1} paddingLeft={2}>
         <text fg="white">
@@ -312,41 +394,92 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
               {block.text}
             </text>
           );
-        } else if (block.type === "tool_use") {
+        } else if (block.type === "tool_use" && block.name === "apply_multi_diff") {
+          const edits = block.input?.edits || [];
           return (
-            <box
-              key={idx}
-              flexDirection="column"
-              marginTop={1}
-              padding={1}
-              backgroundColor="#1a1a1e"
-            >
-              <text fg="#e8a838" style={{ weight: "bold" }}>
-                {block.name}
-              </text>
-              <text fg="gray">{JSON.stringify(block.input, null, 2)}</text>
+            <box key={idx} flexDirection="column" marginTop={1} width="100%" flexShrink={0}>
+              {edits.map((edit: any, eIdx: number) => {
+                const changes = buildSimpleDiff(edit.search, edit.replace);
+                return (
+                  <box key={eIdx} width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
+                    <text fg="brightBlue" style={{ weight: "bold" }}>• Edit {edit.path}</text>
+                    <box flexDirection="column" backgroundColor="#1e1e24" padding={1} marginTop={1} width="100%" flexShrink={0}>
+                      {changes.map((line, lIdx) => {
+                        const isAddition = line.type === 'add';
+                        const isDeletion = line.type === 'del';
+                        
+                        let lineBg = "transparent";
+                        let lineFg = "white";
+                        let prefix = "  ";
+
+                        if (isAddition) {
+                          lineBg = "#1b3c22"; // Deep green block tint
+                          lineFg = "brightGreen";
+                          prefix = "+ ";
+                        } else if (isDeletion) {
+                          lineBg = "#3c1b1b"; // Deep red block tint
+                          lineFg = "brightRed";
+                          prefix = "- ";
+                        }
+
+                        return (
+                          <box key={lIdx} width="100%" backgroundColor={lineBg} paddingLeft={1} flexShrink={0}>
+                            <text fg={lineFg}>
+                              <span fg="gray">{line.num.toString().padEnd(4)}</span>
+                              {prefix}
+                              {line.content}
+                            </text>
+                          </box>
+                        );
+                      })}
+                    </box>
+                  </box>
+                );
+              })}
+            </box>
+          );
+        } else if (block.type === "tool_use") {
+          let traceText = `• Execute ${block.name}`;
+          if (block.name === "read_file") {
+            traceText = `• Read ${block.input?.path || block.input?.AbsolutePath}`;
+          } else if (block.name === "write_file") {
+            traceText = `• Write ${block.input?.path || block.input?.TargetFile}`;
+          } else if (block.name === "edit_file") {
+            traceText = `• Edit ${block.input?.path || block.input?.TargetFile}`;
+          } else if (block.name === "list_dir") {
+            traceText = `• List directory ${block.input?.path || block.input?.DirectoryPath}`;
+          } else if (block.name === "grep_search") {
+            traceText = `• Grep search in ${block.input?.path || block.input?.SearchPath} for "${block.input?.query || block.input?.Query}"`;
+          } else if (block.name === "execute_bash" || block.name === "run_command") {
+            traceText = `• Run command: ${block.input?.command || block.input?.CommandLine}`;
+          } else if (block.name === "view_code_outline") {
+            traceText = `• Extract code outline for ${block.input?.path || block.input?.AbsolutePath}`;
+          }
+          
+          return (
+            <box key={idx} paddingLeft={2} marginBottom={1} flexShrink={0}>
+              <text fg="gray">{traceText}</text>
             </box>
           );
         } else if (block.type === "tool_result") {
-          const truncated =
-            block.content.length > 300
-              ? block.content.slice(0, 300) + "..."
-              : block.content;
-          return (
-            <box
-              key={idx}
-              flexDirection="column"
-              marginTop={1}
-              padding={1}
-              backgroundColor="#1a1a1e"
-            >
-              <text
-                fg={block.is_error ? "red" : "green"}
-                style={{ weight: "bold" }}
+          if (block.is_error) {
+            return (
+              <box
+                key={idx}
+                flexDirection="column"
+                marginTop={1}
+                padding={1}
+                backgroundColor="#3c1b1b"
+                flexShrink={0}
               >
-                {block.is_error ? "Error" : "Done"}
-              </text>
-              <text fg="gray">{truncated}</text>
+                <text fg="brightRed" style={{ weight: "bold" }}>Error</text>
+                <text fg="white">{block.content}</text>
+              </box>
+            );
+          }
+          return (
+            <box key={idx} paddingLeft={2} marginBottom={1} flexShrink={0}>
+              <text fg="green">✓ Success</text>
             </box>
           );
         }

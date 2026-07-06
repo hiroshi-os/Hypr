@@ -136,6 +136,9 @@ const HyprApp: React.FC = () => {
   const runAgentLoop = async () => {
     setStatus("thinking");
 
+    let retryCount = 0;
+    const maxRetries = 5;
+
     try {
       let loop = true;
       while (loop) {
@@ -146,13 +149,15 @@ const HyprApp: React.FC = () => {
           allAvailableTools
         );
 
+        let turnEnded = false;
+
         if (typeof response.content === "string") {
           const assistantMsg: Message = { role: "assistant", content: response.content };
           stateRef.current.addMessage(assistantMsg);
           setMessages([...stateRef.current.getMessages()]);
           
           if (response.stopReason === "end_turn") {
-            loop = false;
+            turnEnded = true;
           }
         } else {
           const assistantMsg: Message = { role: "assistant", content: response.content };
@@ -162,7 +167,7 @@ const HyprApp: React.FC = () => {
           const toolCalls = response.content.filter(block => block.type === "tool_use") as any[];
           
           if (toolCalls.length === 0) {
-            loop = false;
+            turnEnded = true;
           } else {
             const toolResults: any[] = [];
             for (const call of toolCalls) {
@@ -231,6 +236,51 @@ const HyprApp: React.FC = () => {
             };
             stateRef.current.addMessage(toolMsg);
             setMessages([...stateRef.current.getMessages()]);
+          }
+        }
+
+        // ── Phase 3: Recursive Test-Driven Self-Correction Loop ──
+        if (turnEnded) {
+          const directives = loadProjectDirectives();
+          if (directives.testCommand && retryCount < maxRetries) {
+            setStatus("executing_tool");
+            setCurrentToolProgress(`Running tests: ${directives.testCommand}...`);
+            
+            const isWindows = process.platform === "win32";
+            const shell = isWindows ? "powershell.exe" : "bash";
+            const cmdArgs = isWindows ? ["-Command", directives.testCommand] : ["-c", directives.testCommand];
+            
+            const proc = Bun.spawn({
+              cmd: [shell, ...cmdArgs],
+              stdout: "pipe",
+              stderr: "pipe"
+            });
+            
+            const exitCode = await proc.exited;
+            
+            if (exitCode !== 0) {
+              const errText = await new Response(proc.stderr).text();
+              const outText = await new Response(proc.stdout).text();
+              const failureLog = errText || outText;
+              
+              retryCount++;
+              
+              const systemMsg: Message = {
+                role: "system",
+                content: `Test failure detected (Exit code: ${exitCode}) after running: ${directives.testCommand}\n` +
+                         `[Self-Correction Cycle ${retryCount}/${maxRetries}]\n` +
+                         `Console Output:\n${failureLog}`
+              };
+              stateRef.current.addMessage(systemMsg);
+              setMessages([...stateRef.current.getMessages()]);
+              
+              loop = true;
+              setStatus("thinking");
+            } else {
+              loop = false;
+            }
+          } else {
+            loop = false;
           }
         }
       }
