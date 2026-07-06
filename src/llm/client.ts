@@ -1,6 +1,7 @@
 import { ToolDef } from "../tools/index.ts";
 import { Message, ContentBlock } from "../state/engine.ts";
 import { scrubMessages } from "../privacy/scrubber.ts";
+import { globalConfigManager } from "../daemon/config.ts";
 
 export interface LLMResponse {
   content: string | ContentBlock[];
@@ -135,7 +136,7 @@ export class LLMClient {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-api-key": this.apiKey || "",
+        "x-api-key": globalConfigManager.getApiKey("anthropic") || this.apiKey || "",
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
@@ -170,7 +171,8 @@ export class LLMClient {
     // Convert Anthropic style tool definition/message to Gemini generateContent structure
     // Since Gemini supports tool calls, we can implement it as:
     // https://ai.google.dev/api/rest/v1beta/models/generateContent
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent?key=${this.apiKey}`;
+    const activeKey = globalConfigManager.getApiKey("google gemini") || globalConfigManager.getApiKey("gemini") || this.apiKey || "";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent?key=${activeKey}`;
     
     // Gemini contents format
     const contents = messages.map(m => {
