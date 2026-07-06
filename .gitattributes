@@ -1,2 +1,3 @@
-docs/** linguist-vendored
+.agents/** linguist-vendored
+.agents/** linguist-documentation
 docs/** linguist-documentation

@@ -8,25 +8,110 @@ export const SLASH_COMMANDS = [
   { name: "/agents", desc: "Switch agent" },
   { name: "/connect", desc: "Connect provider" },
   { name: "/models", desc: "Switch model" },
+  { name: "/variant", desc: "Switch model variant" },
+];
+
+export const VARIANTS_LIST = [
+  { name: "Default", desc: "", category: "Variant" },
+  { name: "low", desc: "Faster, less capable", category: "Variant" },
+  { name: "medium", desc: "Balanced", category: "Variant" },
+  { name: "high", desc: "More capable, slower", category: "Variant" },
+  { name: "max", desc: "Best quality, slowest", category: "Variant" },
 ];
 
 export const MODELS_LIST = [
-  { name: "DeepSeek V4 Flash", desc: "Fast & Cheap", category: "Recent", provider: "mock", model: "deepseek-v4-flash" },
-  { name: "Claude Mythos 5", desc: "Best Reasoning", category: "Recent", provider: "mock", model: "claude-mythos-5" },
-  { name: "GPT-5.6 Preview", desc: "Frontier", category: "Recent", provider: "mock", model: "gpt-5.6-preview" },
-  { name: "Qwen 3.5 4B", desc: "Local", category: "Local", provider: "mock", model: "qwen-3.5-4b" },
-  { name: "Phi-4-mini-instruct", desc: "Local", category: "Local", provider: "mock", model: "phi-4-mini-instruct" },
-  { name: "Gemma 4 E4B", desc: "Local", category: "Local", provider: "mock", model: "gemma-4-e4b" },
-  { name: "Gemini 3.5 Flash", desc: "Smart & Fast", category: "Google", provider: "gemini", model: "gemini-3.5-flash" },
-  { name: "Gemini 3.5 Pro", desc: "Reasoning", category: "Google", provider: "gemini", model: "gemini-3.5-pro" },
-  { name: "Claude Opus 4.8", desc: "Agentic Coding", category: "Anthropic", provider: "mock", model: "claude-opus-4.8" },
-  { name: "Claude Sonnet 5", desc: "Speed & Logic", category: "Anthropic", provider: "mock", model: "claude-sonnet-5" },
-  { name: "DeepSeek V4 Pro", desc: "Powerhouse", category: "DeepSeek", provider: "mock", model: "deepseek-v4-pro" },
-  { name: "Qwen 3.7 Max", desc: "Multilingual", category: "Alibaba", provider: "mock", model: "qwen-3.7-max" },
+  {
+    name: "DeepSeek V4 Flash",
+    desc: "Fast & Cheap",
+    category: "Recent",
+    provider: "mock",
+    model: "deepseek-v4-flash",
+  },
+  {
+    name: "Claude Mythos 5",
+    desc: "Best Reasoning",
+    category: "Recent",
+    provider: "mock",
+    model: "claude-mythos-5",
+  },
+  {
+    name: "GPT-5.6 Preview",
+    desc: "Frontier",
+    category: "Recent",
+    provider: "mock",
+    model: "gpt-5.6-preview",
+  },
+  {
+    name: "Qwen 3.5 4B",
+    desc: "Local",
+    category: "Local",
+    provider: "mock",
+    model: "qwen-3.5-4b",
+  },
+  {
+    name: "Phi-4-mini-instruct",
+    desc: "Local",
+    category: "Local",
+    provider: "mock",
+    model: "phi-4-mini-instruct",
+  },
+  {
+    name: "Gemma 4 E4B",
+    desc: "Local",
+    category: "Local",
+    provider: "mock",
+    model: "gemma-4-e4b",
+  },
+  {
+    name: "Gemini 3.5 Flash",
+    desc: "Smart & Fast",
+    category: "Google",
+    provider: "gemini",
+    model: "gemini-3.5-flash",
+  },
+  {
+    name: "Gemini 3.5 Pro",
+    desc: "Reasoning",
+    category: "Google",
+    provider: "gemini",
+    model: "gemini-3.5-pro",
+  },
+  {
+    name: "Claude Opus 4.8",
+    desc: "Agentic Coding",
+    category: "Anthropic",
+    provider: "mock",
+    model: "claude-opus-4.8",
+  },
+  {
+    name: "Claude Sonnet 5",
+    desc: "Speed & Logic",
+    category: "Anthropic",
+    provider: "mock",
+    model: "claude-sonnet-5",
+  },
+  {
+    name: "DeepSeek V4 Pro",
+    desc: "Powerhouse",
+    category: "DeepSeek",
+    provider: "mock",
+    model: "deepseek-v4-pro",
+  },
+  {
+    name: "Qwen 3.7 Max",
+    desc: "Multilingual",
+    category: "Alibaba",
+    provider: "mock",
+    model: "qwen-3.7-max",
+  },
 ];
 
 export const PROVIDERS_LIST = [
-  { name: "OpenAI", desc: "(ChatGPT Plus/Pro or API key)", category: "Popular" },
+  {
+    name: "OpenAI",
+    desc: "(ChatGPT Plus/Pro or API key)",
+    category: "Popular",
+  },
   { name: "GitHub Copilot", desc: "", category: "Popular" },
   { name: "Anthropic", desc: "(API key)", category: "Popular" },
   { name: "Google", desc: "", category: "Popular", selected: true },
@@ -41,11 +126,36 @@ export const PROVIDERS_LIST = [
 ];
 
 export const AGENTS_LIST = [
-  { name: "Build", desc: "Orchestrates compilation and error validation", category: "Core Agents" },
-  { name: "Plan", desc: "Generates step-by-step implementation workflows", category: "Core Agents" },
-  { name: "Code Architect", desc: "Specialist in structural refactoring", category: "Specialized" },
-  { name: "Hardening Agent", desc: "Specialist in UI and styling polish", category: "Specialized" },
+  {
+    name: "Build",
+    desc: "Orchestrates compilation and error validation",
+    category: "Core Agents",
+  },
+  {
+    name: "Plan",
+    desc: "Generates step-by-step implementation workflows",
+    category: "Core Agents",
+  },
+  {
+    name: "Code Architect",
+    desc: "Specialist in structural refactoring",
+    category: "Specialized",
+  },
+  {
+    name: "Hardening Agent",
+    desc: "Specialist in UI and styling polish",
+    category: "Specialized",
+  },
 ];
+
+// Primary color per agent — drives accent bar, chip, hint keys, tip bullet
+export const AGENT_COLORS: Record<string, string> = {
+  "Build":           "#06b6d4", // cyan
+  "Plan":            "#a78bfa", // violet
+  "Code Architect":  "#7aa2f7", // blue
+  "Hardening Agent": "#fb923c", // orange
+};
+export const DEFAULT_PRIMARY = "#06b6d4";
 
 export interface SidebarProps {
   tasks: TaskNode[];
@@ -151,7 +261,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             Plugin Events
           </text>
           {pluginLogs.slice(0, 6).map((log, i) => (
-            <text key={i} fg={dimmed ? "gray" : (log.blocked ? "#e85b4a" : "#6dcf81")}>
+            <text
+              key={i}
+              fg={dimmed ? "gray" : log.blocked ? "#e85b4a" : "#6dcf81"}
+            >
               {log.blocked ? "⛔" : "✓"} [{log.plugin}] {log.hook}
             </text>
           ))}
@@ -162,8 +275,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <box flexDirection="column" marginBottom={1}>
         <text fg="gray">{cwd}</text>
-        <text fg="gray">Agent: <span fg={whiteColor}>{activeAgent || "Self"}</span></text>
-        <text fg="gray">Model: <span fg={whiteColor}>{modelName}</span></text>
+        <text fg="gray">
+          Agent: <span fg={whiteColor}>{activeAgent || "Self"}</span>
+        </text>
+        <text fg="gray">
+          Model: <span fg={whiteColor}>{modelName}</span>
+        </text>
         <text fg={dimmed ? "gray" : "yellow"}>• Hypr 3.0.0</text>
       </box>
     </box>
@@ -171,7 +288,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
-  const [activeRipple, setActiveRipple] = React.useState<{ source: number; step: number } | null>(null);
+  const [activeRipple, setActiveRipple] = React.useState<{
+    source: number;
+    step: number;
+  } | null>(null);
 
   React.useEffect(() => {
     if (!activeRipple) return;
@@ -180,11 +300,14 @@ export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
       return;
     }
     const timer = setTimeout(() => {
-      setActiveRipple(prev => prev ? { ...prev, step: prev.step + 1 } : null);
+      setActiveRipple((prev) =>
+        prev ? { ...prev, step: prev.step + 1 } : null,
+      );
     }, 70);
     return () => clearTimeout(timer);
   }, [activeRipple]);
 
+  // prettier-ignore
   const letters = [
     // h
     [
@@ -196,9 +319,9 @@ export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
     // y
     [
       "    ",
-      "█▀▀█",
+      "█  █",
       "█▄▄█",
-      "  ▄█",
+      "▄▄▄█",
     ],
     // p
     [
@@ -245,7 +368,12 @@ export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
   ];
 
   return (
-    <box flexDirection="column" alignItems="center" marginTop={4} marginBottom={2}>
+    <box
+      flexDirection="column"
+      alignItems="center"
+      marginTop={4}
+      marginBottom={2}
+    >
       <box flexDirection="row">
         {letters.map((letterLines, idx) => {
           let color = idx < 4 ? "gray" : "white";
@@ -299,7 +427,7 @@ function buildSimpleDiff(search: string, replace: string): DiffLine[] {
   const diffLines: DiffLine[] = [];
   const searchLines = search.split("\n");
   const replaceLines = replace.split("\n");
-  
+
   let lineNum = 1;
   for (const line of searchLines) {
     diffLines.push({ type: "del", num: lineNum++, content: line });
@@ -311,7 +439,10 @@ function buildSimpleDiff(search: string, replace: string): DiffLine[] {
   return diffLines;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => {
+export const ChatMessage: React.FC<ChatMessageProps> = ({
+  message,
+  dimmed,
+}) => {
   const textFg = dimmed ? "gray" : "white";
   const systemFg = dimmed ? "gray" : "gray";
   const successFg = dimmed ? "gray" : "green";
@@ -334,7 +465,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => 
                     backgroundColor="#3c1b1b"
                     flexShrink={0}
                   >
-                    <text fg={errorFg} style={{ weight: "bold" }}>Error</text>
+                    <text fg={errorFg} style={{ weight: "bold" }}>
+                      Error
+                    </text>
                     <text fg={textFg}>{block.content}</text>
                   </box>
                 );
@@ -360,7 +493,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => 
   }
 
   if (message.role === "user") {
-    if (Array.isArray(message.content) && message.content.some((c) => c.type === "tool_result")) {
+    if (
+      Array.isArray(message.content) &&
+      message.content.some((c) => c.type === "tool_result")
+    ) {
       return (
         <box flexDirection="column" marginBottom={1} paddingLeft={2}>
           {message.content.map((block: ContentBlock, idx: number) => {
@@ -375,7 +511,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => 
                     backgroundColor="#3c1b1b"
                     flexShrink={0}
                   >
-                    <text fg={errorFg} style={{ weight: "bold" }}>Error</text>
+                    <text fg={errorFg} style={{ weight: "bold" }}>
+                      Error
+                    </text>
                     <text fg={textFg}>{block.content}</text>
                   </box>
                 );
@@ -422,20 +560,45 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => 
               {block.text}
             </text>
           );
-        } else if (block.type === "tool_use" && block.name === "apply_multi_diff") {
+        } else if (
+          block.type === "tool_use" &&
+          block.name === "apply_multi_diff"
+        ) {
           const edits = block.input?.edits || [];
           return (
-            <box key={idx} flexDirection="column" marginTop={1} width="100%" flexShrink={0}>
+            <box
+              key={idx}
+              flexDirection="column"
+              marginTop={1}
+              width="100%"
+              flexShrink={0}
+            >
               {edits.map((edit: any, eIdx: number) => {
                 const changes = buildSimpleDiff(edit.search, edit.replace);
                 return (
-                  <box key={eIdx} width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
-                    <text fg={infoFg} style={{ weight: "bold" }}>• Edit {edit.path}</text>
-                    <box flexDirection="column" backgroundColor="#1e1e24" padding={1} marginTop={1} width="100%" flexShrink={0}>
+                  <box
+                    key={eIdx}
+                    width="100%"
+                    flexDirection="column"
+                    paddingLeft={2}
+                    marginBottom={1}
+                    flexShrink={0}
+                  >
+                    <text fg={infoFg} style={{ weight: "bold" }}>
+                      • Edit {edit.path}
+                    </text>
+                    <box
+                      flexDirection="column"
+                      backgroundColor="#1e1e24"
+                      padding={1}
+                      marginTop={1}
+                      width="100%"
+                      flexShrink={0}
+                    >
                       {changes.map((line, lIdx) => {
-                        const isAddition = line.type === 'add';
-                        const isDeletion = line.type === 'del';
-                        
+                        const isAddition = line.type === "add";
+                        const isDeletion = line.type === "del";
+
                         let lineBg = "transparent";
                         let lineFg = textFg;
                         let prefix = "  ";
@@ -451,9 +614,17 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => 
                         }
 
                         return (
-                          <box key={lIdx} width="100%" backgroundColor={lineBg} paddingLeft={1} flexShrink={0}>
+                          <box
+                            key={lIdx}
+                            width="100%"
+                            backgroundColor={lineBg}
+                            paddingLeft={1}
+                            flexShrink={0}
+                          >
                             <text fg={lineFg}>
-                              <span fg="gray">{line.num.toString().padEnd(4)}</span>
+                              <span fg="gray">
+                                {line.num.toString().padEnd(4)}
+                              </span>
                               {prefix}
                               {line.content}
                             </text>
@@ -478,12 +649,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => 
             traceText = `• List directory ${block.input?.path || block.input?.DirectoryPath}`;
           } else if (block.name === "grep_search") {
             traceText = `• Grep search in ${block.input?.path || block.input?.SearchPath} for "${block.input?.query || block.input?.Query}"`;
-          } else if (block.name === "execute_bash" || block.name === "run_command") {
+          } else if (
+            block.name === "execute_bash" ||
+            block.name === "run_command"
+          ) {
             traceText = `• Run command: ${block.input?.command || block.input?.CommandLine}`;
           } else if (block.name === "view_code_outline") {
             traceText = `• Extract code outline for ${block.input?.path || block.input?.AbsolutePath}`;
           }
-          
+
           return (
             <box key={idx} paddingLeft={2} marginBottom={1} flexShrink={0}>
               <text fg="gray">{traceText}</text>
@@ -500,7 +674,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => 
                 backgroundColor="#3c1b1b"
                 flexShrink={0}
               >
-                <text fg={errorFg} style={{ weight: "bold" }}>Error</text>
+                <text fg={errorFg} style={{ weight: "bold" }}>
+                  Error
+                </text>
                 <text fg={textFg}>{block.content}</text>
               </box>
             );
@@ -533,18 +709,24 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredItems = items.filter(
+    (item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.desc.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   useKeyboard((e) => {
     if (e.name === "down") {
-      setSelectedIndex((prev) => (prev + 1) % Math.max(1, filteredItems.length));
+      setSelectedIndex(
+        (prev) => (prev + 1) % Math.max(1, filteredItems.length),
+      );
       e.preventDefault();
       e.stopPropagation();
     } else if (e.name === "up") {
-      setSelectedIndex((prev) => (prev - 1 + filteredItems.length) % Math.max(1, filteredItems.length));
+      setSelectedIndex(
+        (prev) =>
+          (prev - 1 + filteredItems.length) % Math.max(1, filteredItems.length),
+      );
       e.preventDefault();
       e.stopPropagation();
     } else if (e.name === "escape") {
@@ -561,6 +743,7 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
   });
 
   const categories = Array.from(new Set(filteredItems.map((i) => i.category)));
+  const listHeight = Math.min(10, categories.length + filteredItems.length);
 
   return (
     <box
@@ -571,27 +754,38 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
       height="100%"
       justifyContent="center"
       alignItems="center"
-      flexShrink={0}
     >
+      {/* Card: fixed height = 1(pad) + 1(title) + 1(gap) + 1(search) + 1(gap) + 10(list) + 1(gap) + 1(footer) + 1(pad) = 18 */}
       <box
-        width={70}
-        maxHeight={18}
+        width={72}
+        height={18}
         flexDirection="column"
         backgroundColor="#161618"
-        paddingY={1}
-        paddingX={2}
-        flexShrink={0}
+        paddingTop={1}
+        paddingBottom={1}
+        paddingLeft={2}
+        paddingRight={2}
       >
         {/* Header */}
-        <box flexDirection="row" justifyContent="space-between" marginBottom={1} flexShrink={0}>
-          <text fg="white" style={{ weight: "bold" }}>
-            {title}
-          </text>
-          <text fg="gray">esc</text>
+        <box
+          flexDirection="row"
+          justifyContent="space-between"
+          height={1}
+          marginBottom={1}
+        >
+          <text fg="white" style={{ weight: "bold" }}>{title}</text>
+          <text fg="#52525b">esc</text>
         </box>
 
-        {/* Search box */}
-        <box flexDirection="row" backgroundColor="#27272a" paddingX={1} marginBottom={1} flexShrink={0}>
+        {/* Search bar */}
+        <box
+          flexDirection="row"
+          backgroundColor="#27272a"
+          paddingLeft={1}
+          paddingRight={1}
+          height={1}
+          marginBottom={1}
+        >
           <input
             focused={true}
             value={searchQuery}
@@ -599,17 +793,29 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
               setSearchQuery(val);
               setSelectedIndex(0);
             }}
-            placeholder="Search"
+            placeholder="Search..."
           />
         </box>
 
-        {/* Categories and List Items - SCROLLABLE container */}
-        <box flexDirection="column" maxHeight={10} overflowY="scroll" flexShrink={1}>
+        {/* Scrollable list — height is fixed, scrollbox clips overflow */}
+        <scrollbox
+          width={66}
+          height={10}
+          scrollY={true}
+          scrollX={false}
+          viewportCulling={false}
+          verticalScrollbarOptions={{
+            trackOptions: {
+              foregroundColor: "#e8a838",
+              backgroundColor: "#1e1e22",
+            },
+          }}
+        >
           {categories.map((cat) => {
             const catItems = filteredItems.filter((i) => i.category === cat);
             return (
-              <box key={cat} flexDirection="column" marginBottom={1} flexShrink={0}>
-                <text fg="brightBlue" style={{ weight: "bold" }} flexShrink={0}>
+              <box key={cat} flexDirection="column" marginBottom={1} width={65}>
+                <text fg="#7aa2f7" style={{ weight: "bold" }}>
                   {cat}
                 </text>
                 {catItems.map((item) => {
@@ -620,21 +826,25 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
                     <box
                       key={item.name}
                       flexDirection="row"
-                      backgroundColor={isSelected ? "#e8a838" : undefined}
+                      width={65}
+                      height={1}
+                      backgroundColor={isSelected ? "#e8a838" : "#161618"}
                       paddingLeft={1}
                       onMouseOver={() => setSelectedIndex(absIndex)}
                       onMouseDown={() => onSelect(item)}
-                      flexShrink={0}
                     >
-                      <text fg={isSelected ? "black" : "white"} flexShrink={0}>
+                      <text fg={isSelected ? "#111" : "white"}>
                         {hasCheck ? (
-                          <span fg={isSelected ? "black" : "green"}>✓ </span>
+                          <span fg={isSelected ? "#111" : "#22c55e"}>✓ </span>
+                        ) : isSelected ? (
+                          "▶ "
                         ) : (
-                          isSelected ? "• " : "  "
+                          "  "
                         )}
                         <span style={{ weight: "bold" }}>{item.name}</span>
-                        {"   "}
-                        <span fg={isSelected ? "black" : "gray"}>{item.desc}</span>
+                        {item.desc ? (
+                          <span fg={isSelected ? "#333" : "#52525b"}>{"  "}{item.desc}</span>
+                        ) : null}
                       </text>
                     </box>
                   );
@@ -642,16 +852,11 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
               </box>
             );
           })}
-        </box>
+        </scrollbox>
 
-        {/* Footer shortcuts */}
-        <box marginTop={1} flexDirection="row" gap={2} flexShrink={0}>
-          <text fg="gray">
-            Connect provider <span fg="white">ctrl+a</span>
-          </text>
-          <text fg="gray">
-            Favorite <span fg="white">ctrl+f</span>
-          </text>
+        {/* Footer */}
+        <box height={1} marginTop={1} flexDirection="row">
+          <text fg="#3f3f46">↑↓ navigate  enter select  esc close</text>
         </box>
       </box>
     </box>
@@ -661,19 +866,31 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
 export interface InteractiveInputProps {
   onSubmit: (text: string) => void;
   modelName: string;
+  providerName: string;
+  activeAgent: string;
+  activeVariant: string;
+  primaryColor: string;
   onOpenModelPicker: () => void;
   onOpenAgentPicker: () => void;
   onOpenProviderPicker: () => void;
+  onOpenVariantPicker: () => void;
   dimmed?: boolean;
+  focusKey?: number;
 }
 
 export const InteractiveInput: React.FC<InteractiveInputProps> = ({
   onSubmit,
   modelName,
+  providerName,
+  activeAgent,
+  activeVariant,
+  primaryColor,
   onOpenModelPicker,
   onOpenAgentPicker,
   onOpenProviderPicker,
+  onOpenVariantPicker,
   dimmed,
+  focusKey,
 }) => {
   const [value, setValue] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -688,12 +905,12 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
   const showSlashMenu = trimmed.startsWith("/") && !trimmed.includes(" ");
 
   const filteredCommands = SLASH_COMMANDS.filter((cmd) =>
-    cmd.name.toLowerCase().startsWith(trimmed.toLowerCase())
+    cmd.name.toLowerCase().startsWith(trimmed.toLowerCase()),
   );
 
   const activeIndex = Math.min(
     selectedIndex,
-    Math.max(0, filteredCommands.length - 1)
+    Math.max(0, filteredCommands.length - 1),
   );
 
   const handleSelectCommand = (cmdName: string) => {
@@ -707,6 +924,10 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
       setSelectedIndex(0);
     } else if (cmdName === "/connect") {
       onOpenProviderPicker();
+      setValue("");
+      setSelectedIndex(0);
+    } else if (cmdName === "/variant") {
+      onOpenVariantPicker();
       setValue("");
       setSelectedIndex(0);
     } else {
@@ -723,11 +944,16 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
         e.stopPropagation();
       } else if (e.name === "up") {
         setSelectedIndex(
-          (prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length
+          (prev) =>
+            (prev - 1 + filteredCommands.length) % filteredCommands.length,
         );
         e.preventDefault();
         e.stopPropagation();
-      } else if (e.name === "return" || e.name === "enter" || e.name === "tab") {
+      } else if (
+        e.name === "return" ||
+        e.name === "enter" ||
+        e.name === "tab"
+      ) {
         const selected = filteredCommands[activeIndex];
         if (selected) {
           handleSelectCommand(selected.name);
@@ -747,6 +973,13 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
       }
     }
   });
+
+  const [hoveredChip, setHoveredChip] = React.useState<string | null>(null);
+
+  const accentColor = dimmed ? "#3f3f46" : primaryColor;
+  const mutedFg     = dimmed ? "#3f3f46" : "#52525b";
+  const boldFg      = dimmed ? "#3f3f46" : "white";
+  const hoverBg     = "#2d2d30";  // subtle hover highlight
 
   return (
     <box flexDirection="column" width="100%">
@@ -766,60 +999,95 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
             {filteredCommands.map((cmd, idx) => {
               const isSelected = idx === activeIndex;
               return (
-                 <box
-                   key={cmd.name}
-                   flexDirection="row"
-                   backgroundColor={isSelected ? "#e8a838" : undefined}
-                   paddingX={1}
-                   onMouseOver={() => setSelectedIndex(idx)}
-                   onMouseDown={() => handleSelectCommand(cmd.name)}
-                 >
-                  <text
-                    fg={isSelected ? "black" : "white"}
-                    style={{ weight: "bold" }}
-                  >
+                <box
+                  key={cmd.name}
+                  flexDirection="row"
+                  backgroundColor={isSelected ? primaryColor : undefined}
+                  paddingX={1}
+                  onMouseOver={() => setSelectedIndex(idx)}
+                  onMouseDown={() => handleSelectCommand(cmd.name)}
+                >
+                  <text fg={isSelected ? "black" : "white"} style={{ weight: "bold" }}>
                     {cmd.name.padEnd(12)}
                   </text>
-                  <text fg={isSelected ? "black" : "gray"}>
-                    {cmd.desc}
-                  </text>
+                  <text fg={isSelected ? "black" : "gray"}>{cmd.desc}</text>
                 </box>
               );
             })}
           </box>
         )}
 
-        {/* Input area with left cyan accent bar and flat zinc bg */}
+        {/* Input card */}
         <box flexDirection="row" width="100%" backgroundColor="#27272a" flexShrink={0}>
+          {/* Accent bar — primary color */}
           <box flexDirection="column" width={1}>
-            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
-            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
-            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
-            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
-            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
+            <text fg={accentColor}>▏</text>
+            <text fg={accentColor}>▏</text>
+            <text fg={accentColor}>▏</text>
+            <text fg={accentColor}>▏</text>
+            <text fg={accentColor}>▏</text>
           </box>
-          <box
-            flexDirection="column"
-            flexGrow={1}
-            paddingY={1}
-            paddingLeft={1}
-            paddingRight={1}
-          >
+          <box flexDirection="column" flexGrow={1} paddingY={1} paddingLeft={1} paddingRight={1}>
             <input
-              focused={true}
+              key={focusKey}
+              focused={!dimmed}
               value={value}
-              onInput={(val) => {
-                setValue(val);
-                setSelectedIndex(0);
-              }}
+              onInput={(val) => { setValue(val); setSelectedIndex(0); }}
               onSubmit={handleSubmit}
               placeholder='Ask anything... "What is the tech stack of this project?"'
             />
-            <box marginTop={1} flexDirection="row">
-              <text fg={dimmed ? "gray" : "cyan"}>Sisyphus</text>
-              <text fg={dimmed ? "gray" : "white"}> {modelName} (OAuth)</text>
-              <text fg="gray"> OpenAI · </text>
-              <text fg={dimmed ? "gray" : "#e8a838"}>medium</text>
+            {/* Inline status row — hover-highlighted chips */}
+            <box marginTop={1} flexDirection="row" alignItems="center">
+              {/* Agent */}
+              <box
+                flexDirection="row"
+                paddingLeft={1}
+                paddingRight={1}
+                backgroundColor={!dimmed && hoveredChip === "agent" ? hoverBg : undefined}
+                onMouseOver={() => { if (!dimmed) setHoveredChip("agent"); }}
+                onMouseLeave={() => setHoveredChip(null)}
+                onMouseDown={() => { if (!dimmed) onOpenAgentPicker(); }}
+              >
+                <text fg={accentColor} style={{ weight: "bold" }}>{activeAgent}</text>
+              </box>
+              <text fg={mutedFg}>{" · "}</text>
+              {/* Model */}
+              <box
+                flexDirection="row"
+                paddingLeft={1}
+                paddingRight={1}
+                backgroundColor={!dimmed && hoveredChip === "model" ? hoverBg : undefined}
+                onMouseOver={() => { if (!dimmed) setHoveredChip("model"); }}
+                onMouseLeave={() => setHoveredChip(null)}
+                onMouseDown={() => { if (!dimmed) onOpenModelPicker(); }}
+              >
+                <text fg={!dimmed && hoveredChip === "model" ? accentColor : boldFg} style={{ weight: "bold" }}>{modelName}</text>
+              </box>
+              {/* Provider (inline, no separator box needed) */}
+              <box
+                flexDirection="row"
+                paddingLeft={1}
+                paddingRight={1}
+                backgroundColor={!dimmed && hoveredChip === "provider" ? hoverBg : undefined}
+                onMouseOver={() => { if (!dimmed) setHoveredChip("provider"); }}
+                onMouseLeave={() => setHoveredChip(null)}
+                onMouseDown={() => { if (!dimmed) onOpenProviderPicker(); }}
+              >
+                <text fg={!dimmed && hoveredChip === "provider" ? boldFg : mutedFg}>{providerName}</text>
+              </box>
+              <text fg={mutedFg}>{" · "}</text>
+              {/* Variant */}
+              <box
+                flexDirection="row"
+                paddingLeft={1}
+                paddingRight={1}
+                backgroundColor={!dimmed && hoveredChip === "variant" ? hoverBg : undefined}
+                onMouseOver={() => { if (!dimmed) setHoveredChip("variant"); }}
+                onMouseLeave={() => setHoveredChip(null)}
+                onMouseDown={() => { if (!dimmed) onOpenVariantPicker(); }}
+              >
+                <text fg={dimmed ? "#3f3f46" : hoveredChip === "variant" ? "#fbbf24" : "#e8a838"}>{activeVariant}</text>
+              </box>
             </box>
           </box>
         </box>
@@ -827,23 +1095,19 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
 
       {/* Keyboard shortcut hints */}
       <box flexDirection="row" justifyContent="flex-end" marginTop={1}>
-        <text fg="gray" style={{ weight: "bold" }}>
-          tab
-        </text>
-        <text fg="gray"> agents </text>
-        <text fg="gray" style={{ weight: "bold" }}>
-          ctrl+p
-        </text>
-        <text fg="gray"> commands</text>
+        <text fg={accentColor} style={{ weight: "bold" }}>tab</text>
+        <text fg={mutedFg}> agents </text>
+        <text fg={accentColor} style={{ weight: "bold" }}>ctrl+p</text>
+        <text fg={mutedFg}> commands</text>
       </box>
 
-      {/* Random tip */}
+      {/* Tip */}
       <box flexDirection="row" justifyContent="center" marginTop={1}>
-        <text fg="#e8a838">• Tip</text>
-        <text fg="gray">
-          {" "}
-          Create a plugin to prevent Hypr from reading sensitive files
-        </text>
+        <text fg={accentColor}>• </text>
+        <text fg={accentColor} style={{ weight: "bold" }}>Tip</text>
+        <text fg={mutedFg}>{" Press "}</text>
+        <text fg={boldFg} style={{ weight: "bold" }}>ctrl+x b</text>
+        <text fg={mutedFg}>{" in a session to show or hide the sidebar panel"}</text>
       </box>
     </box>
   );
@@ -852,26 +1116,39 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
 export interface SessionInputProps {
   onSubmit: (text: string) => void;
   modelName: string;
+  providerName: string;
+  activeAgent: string;
+  activeVariant: string;
+  primaryColor: string;
   status: string;
   elapsed?: string;
   onOpenModelPicker: () => void;
   onOpenAgentPicker: () => void;
   onOpenProviderPicker: () => void;
+  onOpenVariantPicker: () => void;
   dimmed?: boolean;
+  focusKey?: number;
 }
 
 export const SessionInput: React.FC<SessionInputProps> = ({
   onSubmit,
   modelName,
+  providerName,
+  activeAgent,
+  activeVariant,
+  primaryColor,
   status,
   elapsed,
   onOpenModelPicker,
   onOpenAgentPicker,
   onOpenProviderPicker,
+  onOpenVariantPicker,
   dimmed,
+  focusKey,
 }) => {
   const [value, setValue] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [hoveredChip, setHoveredChip] = React.useState<string | null>(null);
 
   const handleSubmit = (val: string) => {
     if (!val.trim()) return;
@@ -883,12 +1160,12 @@ export const SessionInput: React.FC<SessionInputProps> = ({
   const showSlashMenu = trimmed.startsWith("/") && !trimmed.includes(" ");
 
   const filteredCommands = SLASH_COMMANDS.filter((cmd) =>
-    cmd.name.toLowerCase().startsWith(trimmed.toLowerCase())
+    cmd.name.toLowerCase().startsWith(trimmed.toLowerCase()),
   );
 
   const activeIndex = Math.min(
     selectedIndex,
-    Math.max(0, filteredCommands.length - 1)
+    Math.max(0, filteredCommands.length - 1),
   );
 
   const handleSelectCommand = (cmdName: string) => {
@@ -902,6 +1179,10 @@ export const SessionInput: React.FC<SessionInputProps> = ({
       setSelectedIndex(0);
     } else if (cmdName === "/connect") {
       onOpenProviderPicker();
+      setValue("");
+      setSelectedIndex(0);
+    } else if (cmdName === "/variant") {
+      onOpenVariantPicker();
       setValue("");
       setSelectedIndex(0);
     } else {
@@ -918,11 +1199,16 @@ export const SessionInput: React.FC<SessionInputProps> = ({
         e.stopPropagation();
       } else if (e.name === "up") {
         setSelectedIndex(
-          (prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length
+          (prev) =>
+            (prev - 1 + filteredCommands.length) % filteredCommands.length,
         );
         e.preventDefault();
         e.stopPropagation();
-      } else if (e.name === "return" || e.name === "enter" || e.name === "tab") {
+      } else if (
+        e.name === "return" ||
+        e.name === "enter" ||
+        e.name === "tab"
+      ) {
         const selected = filteredCommands[activeIndex];
         if (selected) {
           handleSelectCommand(selected.name);
@@ -943,17 +1229,19 @@ export const SessionInput: React.FC<SessionInputProps> = ({
     }
   });
 
+  const accentColor = dimmed ? "#3f3f46" : primaryColor;
+  const mutedFg     = dimmed ? "#3f3f46" : "#52525b";
+  const boldFg      = dimmed ? "#3f3f46" : "white";
+  const hoverBg     = "#2d2d30";
+
   return (
     <box flexDirection="column" width="100%">
-      {/* Status indicator */}
+      {/* Running status indicator */}
       {status !== "idle" && (
-        <box paddingLeft={2} marginBottom={1}>
-          <text fg="blue">■</text>
-          <text fg="gray"> {status === "thinking" ? "Build" : "Exec"} · </text>
-          <text fg="gray">
-            {" "}
-            {modelName} · {elapsed || "0.0s"}
-          </text>
+        <box paddingLeft={2} marginBottom={1} flexDirection="row">
+          <text fg={primaryColor}>■ </text>
+          <text fg={boldFg} style={{ weight: "bold" }}>{activeAgent}</text>
+          <text fg={mutedFg}>{" · "}{modelName}{" · "}{elapsed || "0.0s"}</text>
         </box>
       )}
 
@@ -973,54 +1261,96 @@ export const SessionInput: React.FC<SessionInputProps> = ({
             {filteredCommands.map((cmd, idx) => {
               const isSelected = idx === activeIndex;
               return (
-                 <box
-                   key={cmd.name}
-                   flexDirection="row"
-                   backgroundColor={isSelected ? "#e8a838" : undefined}
-                   paddingX={1}
-                   onMouseOver={() => setSelectedIndex(idx)}
-                   onMouseDown={() => handleSelectCommand(cmd.name)}
-                 >
-                  <text
-                    fg={isSelected ? "black" : "white"}
-                    style={{ weight: "bold" }}
-                  >
+                <box
+                  key={cmd.name}
+                  flexDirection="row"
+                  backgroundColor={isSelected ? primaryColor : undefined}
+                  paddingX={1}
+                  onMouseOver={() => setSelectedIndex(idx)}
+                  onMouseDown={() => handleSelectCommand(cmd.name)}
+                >
+                  <text fg={isSelected ? "black" : "white"} style={{ weight: "bold" }}>
                     {cmd.name.padEnd(12)}
                   </text>
-                  <text fg={isSelected ? "black" : "gray"}>
-                    {cmd.desc}
-                  </text>
+                  <text fg={isSelected ? "black" : "gray"}>{cmd.desc}</text>
                 </box>
               );
             })}
           </box>
         )}
 
-        {/* Compact input with left cyan accent bar and flat zinc bg */}
+        {/* Compact input card */}
         <box flexDirection="row" width="100%" backgroundColor="#27272a" flexShrink={0}>
+          {/* Accent bar */}
           <box flexDirection="column" width={1}>
-            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
-            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
-            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
+            <text fg={accentColor}>▏</text>
+            <text fg={accentColor}>▏</text>
+            <text fg={accentColor}>▏</text>
           </box>
           <box flexGrow={1} paddingY={1} paddingLeft={1} paddingRight={1}>
             <input
-              focused={true}
+              key={focusKey}
+              focused={!dimmed}
               value={value}
-              onInput={(val) => {
-                setValue(val);
-                setSelectedIndex(0);
-              }}
+              onInput={(val) => { setValue(val); setSelectedIndex(0); }}
               onSubmit={handleSubmit}
             />
           </box>
         </box>
       </box>
 
-      {/* Bottom status bar */}
-      <box flexDirection="row" marginTop={1}>
-        <text fg={dimmed ? "gray" : "green"}>Build</text>
-        <text fg="gray"> {modelName} llama.cpp (hosted)</text>
+      {/* Inline status row — hover-highlighted chips */}
+      <box flexDirection="row" marginTop={1} alignItems="center">
+        {/* Agent */}
+        <box
+          flexDirection="row"
+          paddingLeft={1}
+          paddingRight={1}
+          backgroundColor={!dimmed && hoveredChip === "agent" ? hoverBg : undefined}
+          onMouseOver={() => { if (!dimmed) setHoveredChip("agent"); }}
+          onMouseLeave={() => setHoveredChip(null)}
+          onMouseDown={() => { if (!dimmed) onOpenAgentPicker(); }}
+        >
+          <text fg={accentColor} style={{ weight: "bold" }}>{activeAgent}</text>
+        </box>
+        <text fg={mutedFg}>{" · "}</text>
+        {/* Model */}
+        <box
+          flexDirection="row"
+          paddingLeft={1}
+          paddingRight={1}
+          backgroundColor={!dimmed && hoveredChip === "model" ? hoverBg : undefined}
+          onMouseOver={() => { if (!dimmed) setHoveredChip("model"); }}
+          onMouseLeave={() => setHoveredChip(null)}
+          onMouseDown={() => { if (!dimmed) onOpenModelPicker(); }}
+        >
+          <text fg={!dimmed && hoveredChip === "model" ? accentColor : boldFg} style={{ weight: "bold" }}>{modelName}</text>
+        </box>
+        {/* Provider */}
+        <box
+          flexDirection="row"
+          paddingLeft={1}
+          paddingRight={1}
+          backgroundColor={!dimmed && hoveredChip === "provider" ? hoverBg : undefined}
+          onMouseOver={() => { if (!dimmed) setHoveredChip("provider"); }}
+          onMouseLeave={() => setHoveredChip(null)}
+          onMouseDown={() => { if (!dimmed) onOpenProviderPicker(); }}
+        >
+          <text fg={!dimmed && hoveredChip === "provider" ? boldFg : mutedFg}>{providerName}</text>
+        </box>
+        <text fg={mutedFg}>{" · "}</text>
+        {/* Variant */}
+        <box
+          flexDirection="row"
+          paddingLeft={1}
+          paddingRight={1}
+          backgroundColor={!dimmed && hoveredChip === "variant" ? hoverBg : undefined}
+          onMouseOver={() => { if (!dimmed) setHoveredChip("variant"); }}
+          onMouseLeave={() => setHoveredChip(null)}
+          onMouseDown={() => { if (!dimmed) onOpenVariantPicker(); }}
+        >
+          <text fg={dimmed ? "#3f3f46" : hoveredChip === "variant" ? "#fbbf24" : "#e8a838"}>{activeVariant}</text>
+        </box>
       </box>
     </box>
   );

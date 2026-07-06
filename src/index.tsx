@@ -15,7 +15,7 @@ import { registerExtensionTool } from "./tools/extensionTool.ts";
 import { generateDiagnosticBundleTool } from "./tools/diagnosticTool.ts";
 import { globalPluginManager, PluginLog } from "./plugins/manager.ts";
 import { loadProjectDirectives } from "./config/directives.ts";
-import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo, PickerOverlay, MODELS_LIST, AGENTS_LIST, PROVIDERS_LIST } from "./ui/Canvas.tsx";
+import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo, PickerOverlay, MODELS_LIST, AGENTS_LIST, PROVIDERS_LIST, VARIANTS_LIST, AGENT_COLORS, DEFAULT_PRIMARY } from "./ui/Canvas.tsx";
 
 const toolsList = [
   readFileTool,
@@ -43,9 +43,16 @@ const HyprApp: React.FC = () => {
   const [tasks, setTasks] = React.useState(globalScheduler.getTasks());
   const [rulesFound, setRulesFound] = React.useState(false);
   const [pluginLogs, setPluginLogs] = React.useState<PluginLog[]>([]);
-  const [activePicker, setActivePicker] = React.useState<"models" | "agents" | null>(null);
-  const [activeAgent, setActiveAgent] = React.useState("Self");
+  const [activePicker, setActivePicker] = React.useState<"models" | "agents" | "providers" | "variant" | null>(null);
+  const [activeAgent, setActiveAgent] = React.useState("Build");
+  const [activeVariant, setActiveVariant] = React.useState("medium");
+  const [pickerFocusKey, setPickerFocusKey] = React.useState(0);
   const [currentModelName, setCurrentModelName] = React.useState("");
+
+  const closePicker = React.useCallback(() => {
+    setActivePicker(null);
+    setPickerFocusKey((k) => k + 1);
+  }, []);
 
   React.useEffect(() => {
     const provider = clientRef.current.getProviderName();
@@ -105,6 +112,16 @@ const HyprApp: React.FC = () => {
 
     if (lower === "/agents") {
       setActivePicker("agents");
+      return;
+    }
+
+    if (lower === "/connect") {
+      setActivePicker("providers");
+      return;
+    }
+
+    if (lower === "/variant") {
+      setActivePicker("variant");
       return;
     }
 
@@ -307,6 +324,7 @@ const HyprApp: React.FC = () => {
   const provider = clientRef.current.getProviderName();
   const hasSession = messages.length > 0;
   const isDimmed = activePicker !== null;
+  const primaryColor = AGENT_COLORS[activeAgent] ?? DEFAULT_PRIMARY;
 
   let content;
   if (!hasSession && status === "idle") {
@@ -318,10 +336,16 @@ const HyprApp: React.FC = () => {
           <InteractiveInput
             onSubmit={handleUserInput}
             modelName={currentModelName}
+            providerName={provider}
+            activeAgent={activeAgent}
+            activeVariant={activeVariant}
+            primaryColor={primaryColor}
             onOpenModelPicker={() => setActivePicker("models")}
             onOpenAgentPicker={() => setActivePicker("agents")}
             onOpenProviderPicker={() => setActivePicker("providers")}
+            onOpenVariantPicker={() => setActivePicker("variant")}
             dimmed={isDimmed}
+            focusKey={pickerFocusKey}
           />
         </box>
         <box flexGrow={2} />
@@ -354,11 +378,17 @@ const HyprApp: React.FC = () => {
               <SessionInput
                 onSubmit={handleUserInput}
                 modelName={currentModelName}
+                providerName={provider}
+                activeAgent={activeAgent}
+                activeVariant={activeVariant}
+                primaryColor={primaryColor}
                 status="idle"
                 onOpenModelPicker={() => setActivePicker("models")}
                 onOpenAgentPicker={() => setActivePicker("agents")}
                 onOpenProviderPicker={() => setActivePicker("providers")}
+                onOpenVariantPicker={() => setActivePicker("variant")}
                 dimmed={isDimmed}
+                focusKey={pickerFocusKey}
               />
             </box>
           )}
@@ -386,28 +416,27 @@ const HyprApp: React.FC = () => {
     clientRef.current.setProvider(model.provider as any);
     clientRef.current.setModelName(model.model);
     setCurrentModelName(model.name);
-    setActivePicker(null);
+    closePicker();
   };
 
   const handleSelectAgent = (agent: any) => {
     setActiveAgent(agent.name);
-    setActivePicker(null);
-    const systemMsg: Message = {
-      role: "system",
-      content: `System: Active agent switched to ${agent.name}`
-    };
-    stateRef.current.addMessage(systemMsg);
-    setMessages([...stateRef.current.getMessages()]);
+    closePicker();
   };
 
   const handleSelectProvider = (prov: any) => {
-    setActivePicker(null);
+    closePicker();
     const systemMsg: Message = {
       role: "system",
       content: `System: Provider connected to ${prov.name}`
     };
     stateRef.current.addMessage(systemMsg);
     setMessages([...stateRef.current.getMessages()]);
+  };
+
+  const handleSelectVariant = (variant: any) => {
+    setActiveVariant(variant.name);
+    closePicker();
   };
 
   return (
@@ -427,7 +456,7 @@ const HyprApp: React.FC = () => {
           title="Select model"
           items={MODELS_LIST}
           onSelect={handleSelectModel}
-          onClose={() => setActivePicker(null)}
+          onClose={closePicker}
         />
       )}
 
@@ -436,7 +465,7 @@ const HyprApp: React.FC = () => {
           title="Select agent"
           items={AGENTS_LIST}
           onSelect={handleSelectAgent}
-          onClose={() => setActivePicker(null)}
+          onClose={closePicker}
         />
       )}
 
@@ -445,7 +474,16 @@ const HyprApp: React.FC = () => {
           title="Connect a provider"
           items={PROVIDERS_LIST}
           onSelect={handleSelectProvider}
-          onClose={() => setActivePicker(null)}
+          onClose={closePicker}
+        />
+      )}
+
+      {activePicker === "variant" && (
+        <PickerOverlay
+          title="Select variant"
+          items={VARIANTS_LIST}
+          onSelect={handleSelectVariant}
+          onClose={closePicker}
         />
       )}
     </box>
