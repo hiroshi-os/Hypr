@@ -684,7 +684,7 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
             bottom={4}
             left={0}
             width="100%"
-            backgroundColor="#202024"
+            backgroundColor="#27272a"
             flexShrink={0}
             paddingY={1}
             paddingLeft={2}
@@ -715,7 +715,7 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
         )}
 
         {/* Input area with left cyan accent bar and flat zinc bg */}
-        <box flexDirection="row" width="100%" backgroundColor="#202024" flexShrink={0}>
+        <box flexDirection="row" width="100%" backgroundColor="#27272a" flexShrink={0}>
           <box flexDirection="column" width={1}>
             <text fg="brightCyan">▏</text>
             <text fg="brightCyan">▏</text>
@@ -866,7 +866,7 @@ export const SessionInput: React.FC<SessionInputProps> = ({
             bottom={3}
             left={0}
             width="100%"
-            backgroundColor="#202024"
+            backgroundColor="#27272a"
             flexShrink={0}
             paddingY={1}
             paddingLeft={2}
@@ -897,7 +897,7 @@ export const SessionInput: React.FC<SessionInputProps> = ({
         )}
 
         {/* Compact input with left cyan accent bar and flat zinc bg */}
-        <box flexDirection="row" width="100%" backgroundColor="#202024" flexShrink={0}>
+        <box flexDirection="row" width="100%" backgroundColor="#27272a" flexShrink={0}>
           <box flexDirection="column" width={1}>
             <text fg="brightCyan">▏</text>
             <text fg="brightCyan">▏</text>
