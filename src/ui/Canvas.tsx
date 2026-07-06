@@ -220,6 +220,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       paddingTop={1}
       height="100%"
     >
+      <FlatDirectoryStatusPanel
+        currentWorkspace={cwd || process.cwd()}
+        sessionLoaded={messages ? messages.length > 0 : false}
+        historyCount={messages ? messages.length : 0}
+      />
+
       <FlatDaemonMeshStatus
         connectedClients={connectedClients || 1}
         activeWorkers={activeWorkers || 4}
@@ -1705,6 +1711,33 @@ export const FlatVectorResultsPanel: React.FC<FlatVectorResultsPanelProps> = ({
             <text fg="gray"> [Score: {node.score.toFixed(2)}] - Line {node.startLine}</text>
           </box>
         ))}
+      </box>
+    </box>
+  );
+};
+
+export interface FlatDirectoryStatusPanelProps {
+  currentWorkspace: string;
+  sessionLoaded: boolean;
+  historyCount: number;
+}
+
+export const FlatDirectoryStatusPanel: React.FC<FlatDirectoryStatusPanelProps> = ({
+  currentWorkspace,
+  sessionLoaded,
+  historyCount,
+}) => {
+  return (
+    <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
+      <text fg="gray">Directory: <span fg="white">{currentWorkspace}</span></text>
+      
+      <box flexDirection="row" marginTop={1} paddingLeft={1} flexShrink={0}>
+        <text fg={sessionLoaded ? "brightGreen" : "cyan"}>• </text>
+        <text fg="white">
+          {sessionLoaded 
+            ? `Hydrated historic session tracker (${historyCount} log nodes)` 
+            : "No previous directory trace found. Provisioned fresh environment workspace."}
+        </text>
       </box>
     </box>
   );
