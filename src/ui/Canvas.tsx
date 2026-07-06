@@ -11,18 +11,18 @@ export const SLASH_COMMANDS = [
 ];
 
 export const MODELS_LIST = [
-  { name: "DeepSeek V4 Flash Free", desc: "Free", category: "Recent", provider: "mock", model: "deepseek-v4-flash-free" },
-  { name: "Big Pickle", desc: "Free", category: "Local", provider: "mock", model: "big-pickle" },
-  { name: "MiMo V2.5 Free", desc: "Free", category: "Local", provider: "mock", model: "mimo-v2.5-free" },
-  { name: "Nemotron 3 Ultra Free", desc: "Free", category: "Local", provider: "mock", model: "nemotron-3-ultra-free" },
-  { name: "North Mini Code Free", desc: "Free", category: "Local", provider: "mock", model: "north-mini-code-free" },
-  { name: "Gemini 2.5 Flash", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash" },
-  { name: "Gemini 2.5 Flash Preview TTS", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash-preview-tts" },
-  { name: "Gemini 2.5 Flash-Lite", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash-lite" },
-  { name: "Gemini 2.5 Pro", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-pro" },
-  { name: "Gemini 2.5 Pro Preview TTS", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-pro-preview-tts" },
-  { name: "Gemini 3 Flash Preview", desc: "", category: "Google", provider: "gemini", model: "gemini-3-flash-preview" },
-  { name: "Gemini 3.1 Flash Lite", desc: "", category: "Google", provider: "gemini", model: "gemini-3.1-flash-lite" },
+  { name: "DeepSeek V4 Flash", desc: "Fast & Cheap", category: "Recent", provider: "mock", model: "deepseek-v4-flash" },
+  { name: "Claude Mythos 5", desc: "Best Reasoning", category: "Recent", provider: "mock", model: "claude-mythos-5" },
+  { name: "GPT-5.6 Preview", desc: "Frontier", category: "Recent", provider: "mock", model: "gpt-5.6-preview" },
+  { name: "Qwen 3.5 4B", desc: "Local", category: "Local", provider: "mock", model: "qwen-3.5-4b" },
+  { name: "Phi-4-mini-instruct", desc: "Local", category: "Local", provider: "mock", model: "phi-4-mini-instruct" },
+  { name: "Gemma 4 E4B", desc: "Local", category: "Local", provider: "mock", model: "gemma-4-e4b" },
+  { name: "Gemini 3.5 Flash", desc: "Smart & Fast", category: "Google", provider: "gemini", model: "gemini-3.5-flash" },
+  { name: "Gemini 3.5 Pro", desc: "Reasoning", category: "Google", provider: "gemini", model: "gemini-3.5-pro" },
+  { name: "Claude Opus 4.8", desc: "Agentic Coding", category: "Anthropic", provider: "mock", model: "claude-opus-4.8" },
+  { name: "Claude Sonnet 5", desc: "Speed & Logic", category: "Anthropic", provider: "mock", model: "claude-sonnet-5" },
+  { name: "DeepSeek V4 Pro", desc: "Powerhouse", category: "DeepSeek", provider: "mock", model: "deepseek-v4-pro" },
+  { name: "Qwen 3.7 Max", desc: "Multilingual", category: "Alibaba", provider: "mock", model: "qwen-3.7-max" },
 ];
 
 export const PROVIDERS_LIST = [
@@ -608,8 +608,8 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
           {categories.map((cat) => {
             const catItems = filteredItems.filter((i) => i.category === cat);
             return (
-              <box key={cat} flexDirection="column" marginBottom={1}>
-                <text fg="brightBlue" style={{ weight: "bold" }}>
+              <box key={cat} flexDirection="column" marginBottom={1} flexShrink={0}>
+                <text fg="brightBlue" style={{ weight: "bold" }} flexShrink={0}>
                   {cat}
                 </text>
                 {catItems.map((item) => {
@@ -624,8 +624,9 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
                       paddingLeft={1}
                       onMouseOver={() => setSelectedIndex(absIndex)}
                       onMouseDown={() => onSelect(item)}
+                      flexShrink={0}
                     >
-                      <text fg={isSelected ? "black" : "white"}>
+                      <text fg={isSelected ? "black" : "white"} flexShrink={0}>
                         {hasCheck ? (
                           <span fg={isSelected ? "black" : "green"}>✓ </span>
                         ) : (
