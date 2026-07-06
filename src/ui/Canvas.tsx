@@ -287,25 +287,102 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
+const outerCells = [
+  [0, 0], [0, 1], [0, 2], [0, 3],
+  [1, 3], [2, 3], [3, 3], [3, 2],
+  [3, 1], [3, 0], [2, 0], [1, 0]
+];
+
+function getOuterCellIndex(r: number, c: number): number {
+  for (let i = 0; i < outerCells.length; i++) {
+    if (outerCells[i][0] === r && outerCells[i][1] === c) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function getCircularDistance(a: number, b: number, total: number): number {
+  const diff = Math.abs(a - b);
+  return Math.min(diff, total - diff);
+}
+
 export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
+  const [animationTick, setAnimationTick] = React.useState(0);
+  const [holdInfo, setHoldInfo] = React.useState<{
+    letterIdx: number;
+    startTime: number;
+    elapsed: number;
+  } | null>(null);
+
   const [activeRipple, setActiveRipple] = React.useState<{
-    source: number;
+    sourceIdx: number;
     step: number;
+    isExplode: boolean;
   } | null>(null);
 
   React.useEffect(() => {
-    if (!activeRipple) return;
-    if (activeRipple.step > 8) {
-      setActiveRipple(null);
-      return;
+    if (!holdInfo && !activeRipple) return;
+
+    const timer = setInterval(() => {
+      if (holdInfo) {
+        setHoldInfo((prev) => {
+          if (!prev) return null;
+          const newElapsed = Date.now() - prev.startTime;
+          if (newElapsed >= 3000) {
+            // Explode!
+            setActiveRipple({ sourceIdx: prev.letterIdx, step: 0, isExplode: true });
+            return null;
+          }
+          return { ...prev, elapsed: newElapsed };
+        });
+      }
+
+      if (activeRipple) {
+        setActiveRipple((prev) => {
+          if (!prev) return null;
+          const maxSteps = prev.isExplode ? 24 : 16;
+          if (prev.step >= maxSteps) {
+            return null;
+          }
+          return { ...prev, step: prev.step + 1 };
+        });
+      }
+
+      setAnimationTick((t) => t + 1);
+    }, 45);
+
+    return () => clearInterval(timer);
+  }, [holdInfo, activeRipple]);
+
+  const handleMouseDown = (idx: number) => {
+    if (dimmed) return;
+    setHoldInfo({
+      letterIdx: idx,
+      startTime: Date.now(),
+      elapsed: 0,
+    });
+  };
+
+  const handleMouseRelease = () => {
+    if (holdInfo) {
+      const duration = Date.now() - holdInfo.startTime;
+      if (duration < 350) {
+        setActiveRipple({
+          sourceIdx: holdInfo.letterIdx,
+          step: 0,
+          isExplode: false,
+        });
+      } else {
+        setActiveRipple({
+          sourceIdx: holdInfo.letterIdx,
+          step: 0,
+          isExplode: true,
+        });
+      }
+      setHoldInfo(null);
     }
-    const timer = setTimeout(() => {
-      setActiveRipple((prev) =>
-        prev ? { ...prev, step: prev.step + 1 } : null,
-      );
-    }, 70);
-    return () => clearTimeout(timer);
-  }, [activeRipple]);
+  };
 
   // prettier-ignore
   const letters = [
@@ -376,34 +453,76 @@ export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
     >
       <box flexDirection="row">
         {letters.map((letterLines, idx) => {
-          let color = idx < 4 ? "gray" : "white";
-          if (dimmed) {
-            color = "gray";
-          } else if (activeRipple) {
-            const distance = Math.abs(idx - activeRipple.source);
-            if (distance === activeRipple.step) {
-              color = "#ff7e33"; // Wave peak (vibrant orange)
-            } else if (distance === activeRipple.step - 1) {
-              color = "#ffa54f"; // Trail 1 (warm peach)
-            } else if (distance === activeRipple.step - 2) {
-              color = "#ffe4b5"; // Trail 2 (fading light peach)
-            }
-          }
-
           return (
             <box
               key={idx}
               flexDirection="column"
               marginRight={idx === 7 ? 0 : 1}
-              onMouseDown={() => {
-                setActiveRipple({ source: idx, step: 0 });
-              }}
+              onMouseDown={() => handleMouseDown(idx)}
+              onMouseUp={handleMouseRelease}
+              onMouseOut={handleMouseRelease}
             >
-              {letterLines.map((line, lineIdx) => (
-                <text key={lineIdx} fg={color}>
-                  {line}
-                </text>
-              ))}
+              {letterLines.map((line, r) => {
+                return (
+                  <box key={r} flexDirection="row">
+                    {Array.from(line).map((origChar, c) => {
+                      let char = origChar;
+                      let color = idx < 4 ? "gray" : "white";
+
+                      if (dimmed) {
+                        color = "gray";
+                      } else {
+                        if (holdInfo && holdInfo.letterIdx === idx) {
+                          const cellIndex = getOuterCellIndex(r, c);
+                          if (cellIndex !== -1) {
+                            const speed = 0.05 + (holdInfo.elapsed / 3000) * 0.4;
+                            const currentPos = (animationTick * speed) % 12;
+                            const dist = getCircularDistance(cellIndex, currentPos, 12);
+                            if (dist < 3) {
+                              const tones = ["#ff5500", "#ff7e33", "#ffa54f"];
+                              color = tones[Math.floor(dist)];
+                            } else {
+                              color = "#52525b";
+                            }
+                          } else {
+                            color = "#27272a";
+                          }
+                        } else if (activeRipple) {
+                          const sourceX = activeRipple.sourceIdx * 5 + 2;
+                          const sourceY = 1.5;
+                          const charX = idx * 5 + c;
+                          const charY = r;
+
+                          const d = Math.sqrt((charX - sourceX) * (charX - sourceX) + (charY - sourceY) * (charY - sourceY));
+                          const wavePos = activeRipple.step * 1.5;
+                          const thickness = activeRipple.isExplode ? 3.0 : 1.8;
+                          const diff = Math.abs(d - wavePos);
+
+                          if (diff < thickness) {
+                            if (origChar !== " ") {
+                              const noiseChars = activeRipple.isExplode
+                                ? ["▒", "▓", "░", "#", "%"]
+                                : ["*", "+", "x", "~", "°"];
+                              const noiseIdx = (animationTick + r + c) % noiseChars.length;
+                              char = noiseChars[noiseIdx];
+
+                              const gradient = ["#ff3b00", "#ff7c00", "#ffab00", "#ffd27f"];
+                              const colorIdx = Math.floor((diff / thickness) * gradient.length);
+                              color = gradient[Math.min(colorIdx, gradient.length - 1)];
+                            }
+                          }
+                        }
+                      }
+
+                      return (
+                        <text key={c} fg={color}>
+                          {char}
+                        </text>
+                      );
+                    })}
+                  </box>
+                );
+              })}
             </box>
           );
         })}

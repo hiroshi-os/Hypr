@@ -326,6 +326,14 @@ const HyprApp: React.FC = () => {
   const isDimmed = activePicker !== null;
   const primaryColor = AGENT_COLORS[activeAgent] ?? DEFAULT_PRIMARY;
 
+  const handleCycleAgent = React.useCallback(() => {
+    setActiveAgent((current) => {
+      const idx = AGENTS_LIST.findIndex((a) => a.name === current);
+      const next = AGENTS_LIST[(idx + 1) % AGENTS_LIST.length];
+      return next.name;
+    });
+  }, []);
+
   let content;
   if (!hasSession && status === "idle") {
     content = (
@@ -426,13 +434,6 @@ const HyprApp: React.FC = () => {
     closePicker();
   };
 
-  const handleCycleAgent = React.useCallback(() => {
-    setActiveAgent((current) => {
-      const idx = AGENTS_LIST.findIndex((a) => a.name === current);
-      const next = AGENTS_LIST[(idx + 1) % AGENTS_LIST.length];
-      return next.name;
-    });
-  }, []);
 
   const handleSelectProvider = (prov: any) => {
     closePicker();
