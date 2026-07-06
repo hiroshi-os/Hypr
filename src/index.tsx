@@ -78,7 +78,29 @@ if (Bun.argv[2] === "daemon") {
     const socketRef = React.useRef<any>(null);
     const ctrlXActiveRef = React.useRef(false);
 
+    const ctrlCPressedRef = React.useRef(false);
+    const ctrlCTimeoutRef = React.useRef<any>(null);
+
     useKeyboard((e) => {
+      if (e.ctrl && e.name === "c") {
+        if (ctrlCPressedRef.current) {
+          process.exit(0);
+        } else {
+          ctrlCPressedRef.current = true;
+          setMessages((prev) => [
+            ...prev,
+            { role: "system", content: "Press Ctrl+C again to exit" }
+          ]);
+          if (ctrlCTimeoutRef.current) clearTimeout(ctrlCTimeoutRef.current);
+          ctrlCTimeoutRef.current = setTimeout(() => {
+            ctrlCPressedRef.current = false;
+          }, 3000);
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
       if (e.ctrl && e.name === "x") {
         ctrlXActiveRef.current = true;
         e.preventDefault();
@@ -356,7 +378,7 @@ if (Bun.argv[2] === "daemon") {
 
   const renderer = await createCliRenderer({
     screenMode: "alternate-screen",
-    exitOnCtrlC: true
+    exitOnCtrlC: false
   });
 
   createRoot(renderer).render(<HyprApp />);
