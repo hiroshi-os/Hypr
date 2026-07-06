@@ -574,7 +574,8 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
       flexShrink={0}
     >
       <box
-        width={55}
+        width={70}
+        height={18}
         flexDirection="column"
         backgroundColor="#161618"
         paddingY={1}
@@ -582,7 +583,7 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
         flexShrink={0}
       >
         {/* Header */}
-        <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
+        <box flexDirection="row" justifyContent="space-between" marginBottom={1} flexShrink={0}>
           <text fg="white" style={{ weight: "bold" }}>
             {title}
           </text>
@@ -602,8 +603,8 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
           />
         </box>
 
-        {/* Categories and List Items */}
-        <box flexDirection="column">
+        {/* Categories and List Items - SCROLLABLE container */}
+        <box flexDirection="column" flexGrow={1} overflowY="scroll">
           {categories.map((cat) => {
             const catItems = filteredItems.filter((i) => i.category === cat);
             return (
@@ -643,7 +644,7 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
         </box>
 
         {/* Footer shortcuts */}
-        <box marginTop={1} flexDirection="row" gap={2}>
+        <box marginTop={1} flexDirection="row" gap={2} flexShrink={0}>
           <text fg="gray">
             Connect provider <span fg="white">ctrl+a</span>
           </text>
