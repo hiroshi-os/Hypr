@@ -56,6 +56,45 @@ if (Bun.argv[2] === "daemon") {
 
   await clientConnect();
 
+  interface FlatKeyProvisionerProps {
+    providerName: string;
+    currentKey: string;
+  }
+
+  const FlatKeyProvisioner: React.FC<FlatKeyProvisionerProps> = ({
+    providerName,
+    currentKey,
+  }) => {
+    const masked = currentKey ? "•".repeat(Math.min(30, currentKey.length)) : "";
+    return (
+      <box
+        position="absolute"
+        top={0}
+        left={0}
+        width="100%"
+        height="100%"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <box width={60} flexDirection="column" backgroundColor="#202024" padding={2}>
+          <text fg="white" style={{ weight: "bold" }}>Key Configuration Matrix: {providerName}</text>
+          <text fg="gray" marginBottom={1}>Paste your token or configure credential environment fields.</text>
+
+          <box height={3} width="100%" backgroundColor="black" flexDirection="row" alignItems="center" paddingLeft={1} marginBottom={1}>
+            <text fg="yellow">Key: </text>
+            <text fg="brightGreen">{masked || "Press keys to type..."}</text>
+          </box>
+
+          <box flexDirection="row" gap={3} marginTop={1}>
+            <text fg="gray">Save key <span fg="white">Enter</span></text>
+            <text fg="gray">Cancel <span fg="white">Esc</span></text>
+            <text fg="gray">OAuth Link <span fg="white">Ctrl+O</span></text>
+          </box>
+        </box>
+      </box>
+    );
+  };
+
   const HyprApp: React.FC = () => {
     const [messages, setMessages] = React.useState<Message[]>([]);
     const [status, setStatus] = React.useState<"idle" | "thinking" | "prompting_permission" | "executing_tool">("idle");
@@ -74,6 +113,9 @@ if (Bun.argv[2] === "daemon") {
     const [activeDelegations, setActiveDelegations] = React.useState<any[]>([]);
     const [activeServers, setActiveServers] = React.useState<any[]>([]);
     const [globalErrorCount, setGlobalErrorCount] = React.useState(0);
+    const [keyProvisionerOpen, setKeyProvisionerOpen] = React.useState(false);
+    const [selectedProviderForRegistration, setSelectedProviderForRegistration] = React.useState("");
+    const [tempKey, setTempKey] = React.useState("");
 
     const socketRef = React.useRef<any>(null);
     const ctrlXActiveRef = React.useRef(false);
@@ -82,6 +124,29 @@ if (Bun.argv[2] === "daemon") {
     const ctrlCTimeoutRef = React.useRef<any>(null);
 
     useKeyboard((e) => {
+      if (keyProvisionerOpen) {
+        if (e.name === "escape") {
+          setKeyProvisionerOpen(false);
+          setActivePicker(null);
+        } else if (e.name === "return") {
+          sendRequest("registerProviderKey", { provider: selectedProviderForRegistration, key: tempKey });
+          sendRequest("selectProvider", { provider: { name: selectedProviderForRegistration } });
+          setKeyProvisionerOpen(false);
+        } else if (e.name === "backspace") {
+          setTempKey((k) => k.slice(0, -1));
+        } else if (e.ctrl && e.name === "o") {
+          setTempKey("oauth-session-token");
+          sendRequest("registerProviderKey", { provider: selectedProviderForRegistration, key: "oauth-session-token" });
+          sendRequest("selectProvider", { provider: { name: selectedProviderForRegistration } });
+          setKeyProvisionerOpen(false);
+        } else if (e.sequence && e.sequence.length === 1) {
+          setTempKey((k) => k + e.sequence);
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
       if (e.ctrl && e.name === "c") {
         if (ctrlCPressedRef.current) {
           renderer.destroy();
@@ -225,7 +290,9 @@ if (Bun.argv[2] === "daemon") {
     };
 
     const handleSelectProvider = (provider: any) => {
-      sendRequest("selectProvider", { provider });
+      setSelectedProviderForRegistration(provider.name);
+      setTempKey("");
+      setKeyProvisionerOpen(true);
       closePicker();
     };
 
@@ -377,6 +444,13 @@ if (Bun.argv[2] === "daemon") {
             items={VARIANTS_LIST}
             onSelect={handleSelectVariant}
             onClose={closePicker}
+          />
+        )}
+
+        {keyProvisionerOpen && (
+          <FlatKeyProvisioner
+            providerName={selectedProviderForRegistration}
+            currentKey={tempKey}
           />
         )}
       </box>

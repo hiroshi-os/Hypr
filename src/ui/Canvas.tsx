@@ -107,22 +107,18 @@ export const MODELS_LIST = [
 ];
 
 export const PROVIDERS_LIST = [
-  {
-    name: "OpenAI",
-    desc: "(ChatGPT Plus/Pro or API key)",
-    category: "Popular",
-  },
-  { name: "GitHub Copilot", desc: "", category: "Popular" },
-  { name: "Anthropic", desc: "(API key)", category: "Popular" },
-  { name: "Google", desc: "", category: "Popular", selected: true },
-  { name: "Requesty", desc: "", category: "Providers" },
-  { name: "Qiniu", desc: "", category: "Providers" },
-  { name: "Alibaba (China)", desc: "", category: "Providers" },
-  { name: "Regolo AI", desc: "", category: "Providers" },
-  { name: "STACKIT", desc: "", category: "Providers" },
-  { name: "Vercel AI Gateway", desc: "", category: "Providers" },
-  { name: "submodel", desc: "", category: "Providers" },
-  { name: "Hugging Face", desc: "", category: "Providers" },
+  { name: "Anthropic", desc: "Native Claude Sonnet/Opus", category: "Direct API Keys" },
+  { name: "OpenAI", desc: "Native GPT-4o/o1/o3", category: "Direct API Keys" },
+  { name: "Google Gemini", desc: "AI Studio direct endpoints", category: "Direct API Keys" },
+  { name: "DeepSeek API", desc: "Native deepseek-coder", category: "Direct API Keys" },
+  { name: "OpenRouter", desc: "Multi-model aggregation gateway", category: "Gateways" },
+  { name: "Groq", desc: "Ultra-low-latency Llama/Mistral", category: "Gateways" },
+  { name: "Together AI", desc: "Low-cost open weights inference", category: "Gateways" },
+  { name: "Ollama", desc: "Offline, local localhost", category: "Local Inferencing" },
+  { name: "LM Studio", desc: "Local context management server", category: "Local Inferencing" },
+  { name: "vLLM / Custom OpenAI", desc: "Self-hosted custom compatibility", category: "Local Inferencing" },
+  { name: "GitHub Models", desc: "Enterprise Developer bypass subscription", category: "Subscriptions" },
+  { name: "OpenCode Zen", desc: "Legacy credit gateway provider", category: "Subscriptions" },
 ];
 
 export const AGENTS_LIST = [
