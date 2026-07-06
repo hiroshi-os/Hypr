@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "bun run src/index.tsx",
-    "build": "bun build src/index.tsx --compile --outfile dist/hypr",
+    "build": "bun build src/index.tsx --compile --minify --outfile dist/hypr",
     "test": "bun test"
   },
   "dependencies": {

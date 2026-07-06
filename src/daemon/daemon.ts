@@ -16,6 +16,8 @@ import { scanComplianceTool } from "../tools/complianceTool.ts";
 import { registerExtensionTool } from "../tools/extensionTool.ts";
 import { generateDiagnosticBundleTool } from "../tools/diagnosticTool.ts";
 import { getCodeDefinitionsTool } from "../tools/lspTools.ts";
+import { semanticCodeSearchTool } from "../tools/vectorTools.ts";
+import { globalVectorRegistry } from "./vector.ts";
 import { globalPersistence, SessionStateSnapshot } from "./persistence.ts";
 import { AGENTS_LIST } from "../ui/Canvas.tsx";
 import { ScopedSubagent } from "./subagent.ts";
@@ -38,6 +40,7 @@ const toolsList = [
   registerExtensionTool,
   generateDiagnosticBundleTool,
   getCodeDefinitionsTool,
+  semanticCodeSearchTool,
 ];
 
 export const SOCKET_PATH = process.platform === "win32" ? "127.0.0.1" : "/tmp/hypr.sock";
@@ -113,6 +116,29 @@ export class HyprDaemon {
       this.rulesFound = true;
     }
     this.state.setSystemPrompt(sysPrompt);
+    this.indexCodebase();
+  }
+
+  private indexCodebase() {
+    try {
+      const indexDir = (dir: string) => {
+        if (!fs.existsSync(dir)) return;
+        const files = fs.readdirSync(dir);
+        for (const file of files) {
+          const fullPath = path.join(dir, file);
+          const stat = fs.statSync(fullPath);
+          if (stat.isDirectory()) {
+            if (file !== "node_modules" && file !== ".git" && file !== ".hypr") {
+              indexDir(fullPath);
+            }
+          } else if (file.endsWith(".ts") || file.endsWith(".tsx")) {
+            const content = fs.readFileSync(fullPath, "utf-8");
+            globalVectorRegistry.chunkFile(fullPath, content);
+          }
+        }
+      };
+      indexDir(path.join(process.cwd(), "src"));
+    } catch (_) {}
   }
 
   start() {
@@ -148,6 +174,20 @@ export class HyprDaemon {
         },
       }
     });
+
+    const cleanup = () => {
+      if (process.platform !== "win32" && fs.existsSync(SOCKET_PATH)) {
+        try { fs.unlinkSync(SOCKET_PATH); } catch (_) {}
+      }
+      const shadowDir = path.join(process.cwd(), ".hypr", "shadow");
+      if (fs.existsSync(shadowDir)) {
+        try { fs.rmSync(shadowDir, { recursive: true, force: true }); } catch (_) {}
+      }
+      process.exit(0);
+    };
+
+    process.on("SIGINT", cleanup);
+    process.on("SIGTERM", cleanup);
 
     console.log(`Hypr daemon active on ${process.platform === "win32" ? `${SOCKET_PATH}:${SOCKET_PORT}` : SOCKET_PATH}`);
   }

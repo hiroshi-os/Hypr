@@ -1596,7 +1596,7 @@ export const FlatDaemonMeshStatus: React.FC<FlatDaemonMeshStatusProps> = ({
     <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
       {/* Mesh Notification Strip - No Borders, Pure Negative Space Separators */}
       <box flexDirection="row" backgroundColor="magenta" paddingLeft={1} paddingRight={1} width="100%" flexShrink={0}>
-        <text fg="black" style={{ weight: "bold" }}>✦ MESH MATRIX ACTIVE: </text>
+        <text fg="black" style={{ weight: "bold" }}>+ MESH MATRIX ACTIVE: </text>
         <text fg="black">Orchestrating <span style={{ weight: "bold" }}>{activeWorkers} subagents</span> background loops.</text>
       </box>
       <box marginTop={1} flexDirection="row" gap={3} paddingLeft={2} flexShrink={0}>
@@ -1622,7 +1622,7 @@ export const FlatSubagentMeshTrack: React.FC<FlatSubagentMeshTrackProps> = ({
   return (
     <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
       {/* Subagent Status Feed - Structural Negative Spacing */}
-      <text fg="brightBlue" style={{ weight: "bold" }}>✦ ACTIVE SUBAGENT ALLOCATIONS</text>
+      <text fg="brightBlue" style={{ weight: "bold" }}>* ACTIVE SUBAGENT ALLOCATIONS</text>
       
       <box flexDirection="column" marginTop={1} paddingLeft={2} flexShrink={0}>
         {activeDelegations.map((agent) => (
@@ -1675,6 +1675,41 @@ export const FlatLspDiagnosticsPanel: React.FC<FlatLspDiagnosticsPanelProps> = (
           <text fg="brightRed" style={{ weight: "bold" }}>! {globalErrorCount} Active Type Conflicts Detected</text>
         </box>
       )}
+    </box>
+  );
+};
+
+export interface FlatVectorResultsPanelProps {
+  query: string;
+  matchNodes: Array<{
+    filePath: string;
+    score: number;
+    startLine: number;
+  }>;
+}
+
+export const FlatVectorResultsPanel: React.FC<FlatVectorResultsPanelProps> = ({
+  query,
+  matchNodes,
+}) => {
+  return (
+    <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
+      {/* Structural Notification Bar - ASCII only, NO EMOJIS */}
+      <box flexDirection="row" backgroundColor="blue" paddingLeft={1} paddingRight={1} width="100%" flexShrink={0}>
+        <text fg="black" style={{ weight: "bold" }}>[SEARCH] SEMANTIC MATCH MATRIX: </text>
+        <text fg="black">Indexed target vectors for prompt query: "{query}"</text>
+      </box>
+
+      {/* Flat List of Top Code Matches */}
+      <box flexDirection="column" marginTop={1} paddingLeft={2} flexShrink={0}>
+        {matchNodes.map((node, idx) => (
+          <box key={idx} flexDirection="row" width="100%" flexShrink={0}>
+            <text fg="brightCyan">-> </text>
+            <text fg="white">{node.filePath}</text>
+            <text fg="gray"> [Score: {node.score.toFixed(2)}] - Line {node.startLine}</text>
+          </box>
+        ))}
+      </box>
     </box>
   );
 };
