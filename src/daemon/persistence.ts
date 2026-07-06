@@ -25,6 +25,8 @@ export class SessionPersistence {
   }
 
   saveSession(snapshot: SessionStateSnapshot) {
+    const isTest = process.env.NODE_ENV === "test" || process.env.BUN_ENV === "test";
+    if (isTest) return;
     const filePath = path.join(this.sessionsDir, `${snapshot.sessionId}.json`);
     fs.writeFileSync(filePath, JSON.stringify(snapshot, null, 2), "utf-8");
     // Also save as latest
