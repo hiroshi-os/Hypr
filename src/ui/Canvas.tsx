@@ -1596,7 +1596,7 @@ export const FlatDaemonMeshStatus: React.FC<FlatDaemonMeshStatusProps> = ({
     <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
       {/* Mesh Notification Strip - No Borders, Pure Negative Space Separators */}
       <box flexDirection="row" backgroundColor="magenta" paddingLeft={1} paddingRight={1} width="100%" flexShrink={0}>
-        <text fg="black" style={{ weight: "bold" }}>+ MESH MATRIX ACTIVE: </text>
+        <text fg="black" style={{ weight: "bold" }}>✦ MESH MATRIX ACTIVE: </text>
         <text fg="black">Orchestrating <span style={{ weight: "bold" }}>{activeWorkers} subagents</span> background loops.</text>
       </box>
       <box marginTop={1} flexDirection="row" gap={3} paddingLeft={2} flexShrink={0}>
@@ -1622,7 +1622,7 @@ export const FlatSubagentMeshTrack: React.FC<FlatSubagentMeshTrackProps> = ({
   return (
     <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
       {/* Subagent Status Feed - Structural Negative Spacing */}
-      <text fg="brightBlue" style={{ weight: "bold" }}>* ACTIVE SUBAGENT ALLOCATIONS</text>
+      <text fg="brightBlue" style={{ weight: "bold" }}>✦ ACTIVE SUBAGENT ALLOCATIONS</text>
       
       <box flexDirection="column" marginTop={1} paddingLeft={2} flexShrink={0}>
         {activeDelegations.map((agent) => (
