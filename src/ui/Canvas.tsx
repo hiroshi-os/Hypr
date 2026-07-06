@@ -119,47 +119,113 @@ export const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export const WelcomeLogo: React.FC = () => {
-  const logo = {
-    left: [
-      "█                  ",
-      "█▀▀█ █__█ █▀▀█ █▀▀▄",
-      "█__█ ▀▄▄█ █__█ █   ",
-      "▀  ▀ ▄▄▄▀ █▀▀▀ ▀   ",
+  const [activeRipple, setActiveRipple] = React.useState<{ source: number; step: number } | null>(null);
+
+  React.useEffect(() => {
+    if (!activeRipple) return;
+    if (activeRipple.step > 8) {
+      setActiveRipple(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setActiveRipple(prev => prev ? { ...prev, step: prev.step + 1 } : null);
+    }, 70);
+    return () => clearTimeout(timer);
+  }, [activeRipple]);
+
+  const letters = [
+    // h
+    [
+      "█   ",
+      "█▀▀█",
+      "█__█",
+      "▀  ▀",
     ],
-    right: [
-      "             ▄     ",
-      "█▀▀▀ █▀▀█ █▀▀█ █▀▀█",
-      "█___ █__█ █__█ █^^^",
-      "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀",
+    // y
+    [
+      "    ",
+      "█__█",
+      "▀▄▄█",
+      "▄▄▄▀",
     ],
-  };
+    // p
+    [
+      "    ",
+      "█▀▀█",
+      "█__█",
+      "█▀▀▀",
+    ],
+    // r
+    [
+      "    ",
+      "█▀▀▄",
+      "█   ",
+      "▀   ",
+    ],
+    // c
+    [
+      "    ",
+      "█▀▀▀",
+      "█___",
+      "▀▀▀▀",
+    ],
+    // o
+    [
+      "    ",
+      "█▀▀█",
+      "█^^█",
+      "▀▀▀▀",
+    ],
+    // d
+    [
+      "   ▄",
+      "█▀▀█",
+      "█__█",
+      "▀▀▀▀",
+    ],
+    // e
+    [
+      "    ",
+      "█▀▀█",
+      "█▀▀▀",
+      "▀▀▀▀",
+    ],
+  ];
 
   return (
-    <box
-      flexDirection="column"
-      alignItems="center"
-      marginTop={4}
-      marginBottom={2}
-    >
+    <box flexDirection="column" alignItems="center" marginTop={4} marginBottom={2}>
       <box flexDirection="row">
-        <box flexDirection="column" marginRight={1}>
-          {logo.left.map((line, i) => (
-            <text key={i} fg="gray">
-              {line}
-            </text>
-          ))}
-        </box>
-        <box flexDirection="column">
-          {logo.right.map((line, i) => (
-            <text key={i} fg="white">
-              {line}
-            </text>
-          ))}
-        </box>
+        {letters.map((letterLines, idx) => {
+          let color = idx < 4 ? "gray" : "white";
+          if (activeRipple) {
+            const distance = Math.abs(idx - activeRipple.source);
+            if (distance === activeRipple.step) {
+              color = "#ff7e33"; // Wave peak (vibrant orange)
+            } else if (distance === activeRipple.step - 1) {
+              color = "#ffa54f"; // Trail 1 (warm peach)
+            } else if (distance === activeRipple.step - 2) {
+              color = "#ffe4b5"; // Trail 2 (fading light peach)
+            }
+          }
+
+          return (
+            <box
+              key={idx}
+              flexDirection="column"
+              marginRight={idx === 7 ? 0 : 1}
+              onMouseDown={() => {
+                setActiveRipple({ source: idx, step: 0 });
+              }}
+            >
+              {letterLines.map((line, lineIdx) => (
+                <text key={lineIdx} fg={color}>
+                  {line}
+                </text>
+              ))}
+            </box>
+          );
+        })}
       </box>
-      {/*<text fg="gray" marginTop={1}>
-        h y p r c o d e
-      </text>*/}
     </box>
   );
 };
