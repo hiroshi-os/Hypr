@@ -85,16 +85,19 @@ export class HyprDaemon {
       });
     });
 
-    // Restore latest session if available
-    const latest = globalPersistence.loadLatest();
-    if (latest) {
-      this.messages = latest.messages;
-      this.activeAgent = latest.activeAgent;
-      this.activeVariant = latest.activeVariant;
-      this.currentModelName = latest.currentModelName;
-      this.providerName = latest.providerName;
-      for (const m of this.messages) {
-        this.state.addMessage(m);
+    // Restore latest session if available (skip if running tests)
+    const isTest = process.env.NODE_ENV === "test" || process.env.BUN_ENV === "test";
+    if (!isTest) {
+      const latest = globalPersistence.loadLatest();
+      if (latest) {
+        this.messages = latest.messages;
+        this.activeAgent = latest.activeAgent;
+        this.activeVariant = latest.activeVariant;
+        this.currentModelName = latest.currentModelName;
+        this.providerName = latest.providerName;
+        for (const m of this.messages) {
+          this.state.addMessage(m);
+        }
       }
     }
 
