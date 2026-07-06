@@ -9,8 +9,14 @@ export interface LLMResponse {
 
 // Convert a basic Zod schema to Anthropic-compatible JSON Schema
 export function zodToJsonSchema(schema: any): any {
+  if (!schema) {
+    return { type: "object", properties: {} };
+  }
   // Extract shape from ZodObject
   const shape = schema.shape;
+  if (!shape) {
+    return { type: "object", properties: {} };
+  }
   const properties: Record<string, any> = {};
   const required: string[] = [];
 

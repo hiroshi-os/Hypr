@@ -84,6 +84,7 @@ if (Bun.argv[2] === "daemon") {
     useKeyboard((e) => {
       if (e.ctrl && e.name === "c") {
         if (ctrlCPressedRef.current) {
+          renderer.destroy();
           process.exit(0);
         } else {
           ctrlCPressedRef.current = true;
@@ -200,6 +201,12 @@ if (Bun.argv[2] === "daemon") {
     }, []);
 
     const handleUserInput = (text: string) => {
+      const trimmed = text.trim();
+      const lower = trimmed.toLowerCase();
+      if (lower === "exit" || lower === "quit" || lower === "/exit") {
+        renderer.destroy();
+        process.exit(0);
+      }
       sendRequest("submitInput", { text });
     };
 
