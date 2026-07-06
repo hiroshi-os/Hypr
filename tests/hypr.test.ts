@@ -207,3 +207,55 @@ describe("Atomic Multi-File Transaction Engine", () => {
   });
 });
 
+describe("HyprDaemon Sockets IPC connection", () => {
+  test("Daemon boots and hydrates client with initial stateUpdate", async () => {
+    const { HyprDaemon, SOCKET_PATH, SOCKET_PORT } = await import("../src/daemon/daemon.ts");
+    const daemon = new HyprDaemon();
+    daemon.start();
+
+    // Connect client socket
+    const isWindows = process.platform === "win32";
+    const connectOptions: any = isWindows
+      ? { hostname: SOCKET_PATH, port: SOCKET_PORT }
+      : { unix: SOCKET_PATH };
+
+    let stateReceived: any = null;
+
+    const socket = await Bun.connect({
+      ...connectOptions,
+      socket: {
+        data(socket, data) {
+          const raw = new TextDecoder().decode(data);
+          const lines = raw.split("\n").filter(l => l.trim());
+          for (const line of lines) {
+            try {
+              const msg = JSON.parse(line);
+              if (msg.method === "stateUpdate") {
+                stateReceived = msg.params;
+              }
+            } catch (_) {}
+          }
+        },
+        error(socket, err) {},
+        close(socket) {}
+      }
+    });
+
+    // Wait a brief moment to receive the data
+    await Bun.sleep(150);
+
+    expect(stateReceived).not.toBeNull();
+    expect(stateReceived.activeAgent).toBe("Build");
+    expect(stateReceived.status).toBe("idle");
+
+    socket.end();
+    // Stop the socket listener server on Windows or clean up on Unix
+    if (daemon["server"]) {
+      daemon["server"].stop();
+    }
+    if (process.platform !== "win32" && fs.existsSync(SOCKET_PATH)) {
+      fs.unlinkSync(SOCKET_PATH);
+    }
+  });
+});
+

@@ -167,6 +167,8 @@ export interface SidebarProps {
   messages?: Message[];
   activeAgent?: string;
   dimmed?: boolean;
+  connectedClients?: number;
+  activeWorkers?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -179,6 +181,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   messages,
   activeAgent,
   dimmed,
+  connectedClients,
+  activeWorkers,
 }) => {
   // Count approx tokens
   let totalChars = 0;
@@ -214,7 +218,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       paddingTop={1}
       height="100%"
     >
-      <box flexDirection="column" marginBottom={1}>
+      <FlatDaemonMeshStatus
+        connectedClients={connectedClients || 1}
+        activeWorkers={activeWorkers || 4}
+      />
+
+      <box flexDirection="column" marginBottom={1} marginTop={1}>
         <text fg={whiteColor}>Go CLI for agentic</text>
         <text fg={whiteColor}>development tasks</text>
       </box>
@@ -1561,6 +1570,30 @@ export const PermissionPrompt: React.FC<PermissionPromptProps> = ({
           n
         </text>
         <text fg="gray">]o</text>
+      </box>
+    </box>
+  );
+};
+
+export interface FlatDaemonMeshStatusProps {
+  connectedClients: number;
+  activeWorkers: number;
+}
+
+export const FlatDaemonMeshStatus: React.FC<FlatDaemonMeshStatusProps> = ({
+  connectedClients,
+  activeWorkers,
+}) => {
+  return (
+    <box width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
+      {/* Mesh Notification Strip - No Borders, Pure Negative Space Separators */}
+      <box flexDirection="row" backgroundColor="magenta" paddingLeft={1} paddingRight={1} width="100%" flexShrink={0}>
+        <text fg="black" style={{ weight: "bold" }}>✦ MESH MATRIX ACTIVE: </text>
+        <text fg="black">Orchestrating <span style={{ weight: "bold" }}>{activeWorkers} subagents</span> background loops.</text>
+      </box>
+      <box marginTop={1} flexDirection="row" gap={3} paddingLeft={2} flexShrink={0}>
+        <text fg="gray">Sockets: <span fg="white">{connectedClients} attached TTYs</span></text>
+        <text fg="gray">{"  "}Daemon PID: <span fg="white">{process.pid}</span></text>
       </box>
     </box>
   );
