@@ -19,8 +19,28 @@
       "href": "https://github.com/hiroshi-os/Hypr"
     }
   },
+  "tabs": [
+    {
+      "tab": "Get Started"
+    },
+    {
+      "tab": "TUI Layout"
+    },
+    {
+      "tab": "Core Engine"
+    },
+    {
+      "tab": "Tools & Plugins"
+    },
+    {
+      "tab": "Privacy & Compliance"
+    },
+    {
+      "tab": "Blog"
+    }
+  ],
   "navigation": {
-    "tabs": [
+    "groups": [
       {
         "tab": "Get Started",
         "groups": [
@@ -31,31 +51,31 @@
               "quickstart",
               "features"
             ]
+          },
+          {
+            "group": "Release Blog",
+            "pages": [
+              "blog/core-shell-loop",
+              "blog/task-trees-and-refactoring",
+              "blog/native-zig-performance-and-mcp"
+            ]
           }
         ]
       },
       {
         "tab": "TUI Layout",
-        "groups": [
-          {
-            "group": "Zig Core & Viewport",
-            "pages": [
-              "tui/viewport",
-              "tui/canvas-components"
-            ]
-          }
+        "group": "Zig Core & Viewport",
+        "pages": [
+          "tui/viewport",
+          "tui/canvas-components"
         ]
       },
       {
         "tab": "Core Engine",
-        "groups": [
-          {
-            "group": "Actor-Critic & State",
-            "pages": [
-              "engine/scheduler",
-              "engine/state-compaction"
-            ]
-          }
+        "group": "Actor-Critic & State",
+        "pages": [
+          "engine/scheduler",
+          "engine/state-compaction"
         ]
       },
       {
