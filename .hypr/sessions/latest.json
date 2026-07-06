@@ -1,0 +1,37 @@
+{
+  "sessionId": "default-session",
+  "messages": [
+    {
+      "role": "user",
+      "content": "execute tests"
+    },
+    {
+      "role": "system",
+      "content": "System Error: undefined is not an object (evaluating 'schema.shape')"
+    },
+    {
+      "role": "user",
+      "content": "execute tests"
+    },
+    {
+      "role": "system",
+      "content": "System Error: undefined is not an object (evaluating 'schema.shape')"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task_1",
+      "title": "Initialize test DB",
+      "status": "running",
+      "dependencies": [],
+      "estimatedFiles": [
+        "db.ts"
+      ]
+    }
+  ],
+  "activeAgent": "Build",
+  "activeVariant": "medium",
+  "currentModelName": "Gemini 2.5 Flash",
+  "providerName": "gemini",
+  "savedAt": "2026-07-06T21:11:05.182Z"
+}

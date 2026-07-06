@@ -326,7 +326,7 @@ describe("LSP Core Client & Interceptor", () => {
       if (diags.length > 0) callbackTriggered = true;
     });
 
-    globalLspManager.notifyFileChanged("src/main.ts", "const x: number = 'mismatch';");
+    globalLspManager.notifyFileChanged("src/main.ts", "const x: number = 'mismatch'; // type mismatch");
     
     expect(globalLspManager.getGlobalErrorCount()).toBe(1);
     expect(callbackTriggered).toBe(true);
