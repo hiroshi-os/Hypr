@@ -15,7 +15,7 @@ import { registerExtensionTool } from "./tools/extensionTool.ts";
 import { generateDiagnosticBundleTool } from "./tools/diagnosticTool.ts";
 import { globalPluginManager, PluginLog } from "./plugins/manager.ts";
 import { loadProjectDirectives } from "./config/directives.ts";
-import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo, PickerOverlay, MODELS_LIST, AGENTS_LIST } from "./ui/Canvas.tsx";
+import { ChatMessage, InteractiveInput, SessionInput, PermissionPrompt, Sidebar, WelcomeLogo, PickerOverlay, MODELS_LIST, AGENTS_LIST, PROVIDERS_LIST } from "./ui/Canvas.tsx";
 
 const toolsList = [
   readFileTool,
@@ -306,19 +306,22 @@ const HyprApp: React.FC = () => {
 
   const provider = clientRef.current.getProviderName();
   const hasSession = messages.length > 0;
+  const isDimmed = activePicker !== null;
 
   let content;
   if (!hasSession && status === "idle") {
     content = (
       <box flexDirection="column" width="100%" height="100%" alignItems="center">
         <box flexGrow={1} />
-        <WelcomeLogo />
+        <WelcomeLogo dimmed={isDimmed} />
         <box width={85} marginBottom={4} flexShrink={0}>
           <InteractiveInput
             onSubmit={handleUserInput}
             modelName={currentModelName}
             onOpenModelPicker={() => setActivePicker("models")}
             onOpenAgentPicker={() => setActivePicker("agents")}
+            onOpenProviderPicker={() => setActivePicker("providers")}
+            dimmed={isDimmed}
           />
         </box>
         <box flexGrow={2} />
@@ -331,12 +334,12 @@ const HyprApp: React.FC = () => {
         <box flexDirection="column" width="75%" paddingRight={4}>
           <box flexDirection="column" flexGrow={1} overflowY="scroll">
             {messages.map((msg, i) => (
-              <ChatMessage key={i} message={msg} />
+              <ChatMessage key={i} message={msg} dimmed={isDimmed} />
             ))}
 
             {(status === "thinking" || status === "executing_tool") && (
               <box paddingLeft={2} marginBottom={1}>
-                <text fg="yellow" style={{ italic: true }}>Thinking: </text>
+                <text fg={isDimmed ? "gray" : "yellow"} style={{ italic: true }}>Thinking: </text>
                 <text fg="gray">{status === "executing_tool" ? currentToolProgress : "Processing your request..."}</text>
               </box>
             )}
@@ -354,6 +357,8 @@ const HyprApp: React.FC = () => {
                 status="idle"
                 onOpenModelPicker={() => setActivePicker("models")}
                 onOpenAgentPicker={() => setActivePicker("agents")}
+                onOpenProviderPicker={() => setActivePicker("providers")}
+                dimmed={isDimmed}
               />
             </box>
           )}
@@ -370,6 +375,7 @@ const HyprApp: React.FC = () => {
             pluginLogs={pluginLogs}
             messages={messages}
             activeAgent={activeAgent}
+            dimmed={isDimmed}
           />
         </box>
       </box>
@@ -394,6 +400,16 @@ const HyprApp: React.FC = () => {
     setMessages([...stateRef.current.getMessages()]);
   };
 
+  const handleSelectProvider = (prov: any) => {
+    setActivePicker(null);
+    const systemMsg: Message = {
+      role: "system",
+      content: `System: Provider connected to ${prov.name}`
+    };
+    stateRef.current.addMessage(systemMsg);
+    setMessages([...stateRef.current.getMessages()]);
+  };
+
   return (
     <box width="100%" height="100%" flexDirection="column">
       <box flexGrow={1} width="100%" height="100%">
@@ -402,13 +418,13 @@ const HyprApp: React.FC = () => {
 
       {/* Footer bar showing working dir and version */}
       <box flexDirection="row" width="100%" justifyContent="space-between" flexShrink={0} marginTop={1}>
-        <text fg="gray">{process.cwd()}:main</text>
-        <text fg="gray">1.15.7</text>
+        <text fg={isDimmed ? "gray" : "gray"}>{process.cwd()}:main</text>
+        <text fg={isDimmed ? "gray" : "gray"}>1.15.7</text>
       </box>
 
       {activePicker === "models" && (
         <PickerOverlay
-          title="Model Selection"
+          title="Select model"
           items={MODELS_LIST}
           onSelect={handleSelectModel}
           onClose={() => setActivePicker(null)}
@@ -417,9 +433,18 @@ const HyprApp: React.FC = () => {
 
       {activePicker === "agents" && (
         <PickerOverlay
-          title="Agent Selection"
+          title="Select agent"
           items={AGENTS_LIST}
           onSelect={handleSelectAgent}
+          onClose={() => setActivePicker(null)}
+        />
+      )}
+
+      {activePicker === "providers" && (
+        <PickerOverlay
+          title="Connect a provider"
+          items={PROVIDERS_LIST}
+          onSelect={handleSelectProvider}
           onClose={() => setActivePicker(null)}
         />
       )}

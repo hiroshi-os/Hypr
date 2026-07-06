@@ -7,22 +7,39 @@ import { PluginLog } from "../plugins/manager.ts";
 export const SLASH_COMMANDS = [
   { name: "/agents", desc: "Switch agent" },
   { name: "/connect", desc: "Connect provider" },
-  { name: "/editor", desc: "Open editor" },
-  { name: "/exit", desc: "Exit the app" },
-  { name: "/help", desc: "Help" },
-  { name: "/init", desc: "guided AGENTS.md setup" },
-  { name: "/mcps", desc: "Toggle MCPs" },
   { name: "/models", desc: "Switch model" },
-  { name: "/new", desc: "New session" },
-  { name: "/review", desc: "review changes [commit|branch|pr], defaults to uncommitted" },
 ];
 
 export const MODELS_LIST = [
-  { name: "Claude 3.5 Sonnet", desc: "Claude 3.5 Sonnet model", category: "OpenCode Zen", provider: "anthropic", model: "claude-3-5-sonnet-20241022" },
-  { name: "Claude 3 Opus", desc: "Claude 3 Opus model", category: "OpenCode Zen", provider: "anthropic", model: "claude-3-opus-20240229" },
-  { name: "Gemini 2.5 Flash", desc: "Gemini 2.5 Flash model", category: "Google", provider: "gemini", model: "gemini-2.5-flash" },
-  { name: "Gemini 2.5 Pro", desc: "Gemini 2.5 Pro model", category: "Google", provider: "gemini", model: "gemini-2.5-pro" },
-  { name: "GPT-5.2 Codex", desc: "Mock LLM", category: "Recent", provider: "mock", model: "gpt-5.2-codex" },
+  { name: "DeepSeek V4 Flash Free OpenCode Zen", desc: "Free", category: "Recent", provider: "mock", model: "deepseek-v4-flash-free" },
+  { name: "Big Pickle", desc: "Free", category: "OpenCode Zen", provider: "mock", model: "big-pickle" },
+  { name: "MiMo V2.5 Free", desc: "Free", category: "OpenCode Zen", provider: "mock", model: "mimo-v2.5-free" },
+  { name: "Nemotron 3 Ultra Free", desc: "Free", category: "OpenCode Zen", provider: "mock", model: "nemotron-3-ultra-free" },
+  { name: "North Mini Code Free", desc: "Free", category: "OpenCode Zen", provider: "mock", model: "north-mini-code-free" },
+  { name: "Gemini 2.5 Flash", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash" },
+  { name: "Gemini 2.5 Flash Preview TTS", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash-preview-tts" },
+  { name: "Gemini 2.5 Flash-Lite", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-flash-lite" },
+  { name: "Gemini 2.5 Pro", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-pro" },
+  { name: "Gemini 2.5 Pro Preview TTS", desc: "", category: "Google", provider: "gemini", model: "gemini-2.5-pro-preview-tts" },
+  { name: "Gemini 3 Flash Preview", desc: "", category: "Google", provider: "gemini", model: "gemini-3-flash-preview" },
+  { name: "Gemini 3.1 Flash Lite", desc: "", category: "Google", provider: "gemini", model: "gemini-3.1-flash-lite" },
+];
+
+export const PROVIDERS_LIST = [
+  { name: "OpenCode Zen (Recommended)", desc: "", category: "Popular", selected: true },
+  { name: "OpenCode Go", desc: "Low cost subscription for everyone", category: "Popular" },
+  { name: "OpenAI", desc: "(ChatGPT Plus/Pro or API key)", category: "Popular" },
+  { name: "GitHub Copilot", desc: "", category: "Popular" },
+  { name: "Anthropic", desc: "(API key)", category: "Popular" },
+  { name: "Google", desc: "", category: "Popular", selected: true },
+  { name: "Requesty", desc: "", category: "Providers" },
+  { name: "Qiniu", desc: "", category: "Providers" },
+  { name: "Alibaba (China)", desc: "", category: "Providers" },
+  { name: "Regolo AI", desc: "", category: "Providers" },
+  { name: "STACKIT", desc: "", category: "Providers" },
+  { name: "Vercel AI Gateway", desc: "", category: "Providers" },
+  { name: "submodel", desc: "", category: "Providers" },
+  { name: "Hugging Face", desc: "", category: "Providers" },
 ];
 
 export const AGENTS_LIST = [
@@ -41,6 +58,7 @@ export interface SidebarProps {
   pluginLogs?: PluginLog[];
   messages?: Message[];
   activeAgent?: string;
+  dimmed?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -52,6 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   pluginLogs,
   messages,
   activeAgent,
+  dimmed,
 }) => {
   // Count approx tokens
   let totalChars = 0;
@@ -77,6 +96,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
   const spent = (sessionTokens * 0.000003).toFixed(2); // ~ $3.00 per million tokens input rate approx
 
+  const whiteColor = dimmed ? "gray" : "white";
+
   return (
     <box
       flexDirection="column"
@@ -86,12 +107,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       height="100%"
     >
       <box flexDirection="column" marginBottom={1}>
-        <text fg="white">Go CLI for agentic</text>
-        <text fg="white">development tasks</text>
+        <text fg={whiteColor}>Go CLI for agentic</text>
+        <text fg={whiteColor}>development tasks</text>
       </box>
 
       <box flexDirection="column" marginBottom={1}>
-        <text fg="white" style={{ weight: "bold" }}>
+        <text fg={whiteColor} style={{ weight: "bold" }}>
           Context
         </text>
         <text fg="gray">{sessionTokens.toLocaleString()} tokens</text>
@@ -100,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </box>
 
       <box flexDirection="column" marginBottom={1}>
-        <text fg="white" style={{ weight: "bold" }}>
+        <text fg={whiteColor} style={{ weight: "bold" }}>
           LSP
         </text>
         <text fg="gray">LSPs will activate as files are read</text>
@@ -108,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {tasks.length > 0 && (
         <box flexDirection="column" marginBottom={1}>
-          <text fg="white" style={{ weight: "bold" }}>
+          <text fg={whiteColor} style={{ weight: "bold" }}>
             Tasks
           </text>
           {tasks.map((t) => {
@@ -128,11 +149,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {pluginLogs && pluginLogs.length > 0 && (
         <box flexDirection="column" marginBottom={1}>
-          <text fg="white" style={{ weight: "bold" }}>
+          <text fg={whiteColor} style={{ weight: "bold" }}>
             Plugin Events
           </text>
           {pluginLogs.slice(0, 6).map((log, i) => (
-            <text key={i} fg={log.blocked ? "#e85b4a" : "#6dcf81"}>
+            <text key={i} fg={dimmed ? "gray" : (log.blocked ? "#e85b4a" : "#6dcf81")}>
               {log.blocked ? "⛔" : "✓"} [{log.plugin}] {log.hook}
             </text>
           ))}
@@ -143,15 +164,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <box flexDirection="column" marginBottom={1}>
         <text fg="gray">{cwd}</text>
-        <text fg="gray">Agent: <span fg="white">{activeAgent || "Self"}</span></text>
-        <text fg="gray">Model: <span fg="white">{modelName}</span></text>
-        <text fg="yellow">• Hypr 3.0.0</text>
+        <text fg="gray">Agent: <span fg={whiteColor}>{activeAgent || "Self"}</span></text>
+        <text fg="gray">Model: <span fg={whiteColor}>{modelName}</span></text>
+        <text fg={dimmed ? "gray" : "yellow"}>• Hypr 3.0.0</text>
       </box>
     </box>
   );
 };
 
-export const WelcomeLogo: React.FC = () => {
+export const WelcomeLogo: React.FC<{ dimmed?: boolean }> = ({ dimmed }) => {
   const [activeRipple, setActiveRipple] = React.useState<{ source: number; step: number } | null>(null);
 
   React.useEffect(() => {
@@ -177,16 +198,16 @@ export const WelcomeLogo: React.FC = () => {
     // y
     [
       "    ",
-      "█__█",
-      "▀▄▄█",
-      "▄▄▄▀",
+      "█▀▀█",
+      "█▄▄█",
+      "  ▄█",
     ],
     // p
     [
       "    ",
-      "█▀▀█",
-      "█__█",
-      "█▀▀▀",
+      "█▀▀▄",
+      "█▄▄▀",
+      "▀   ",
     ],
     // r
     [
@@ -230,7 +251,9 @@ export const WelcomeLogo: React.FC = () => {
       <box flexDirection="row">
         {letters.map((letterLines, idx) => {
           let color = idx < 4 ? "gray" : "white";
-          if (activeRipple) {
+          if (dimmed) {
+            color = "gray";
+          } else if (activeRipple) {
             const distance = Math.abs(idx - activeRipple.source);
             if (distance === activeRipple.step) {
               color = "#ff7e33"; // Wave peak (vibrant orange)
@@ -265,6 +288,7 @@ export const WelcomeLogo: React.FC = () => {
 
 export interface ChatMessageProps {
   message: Message;
+  dimmed?: boolean;
 }
 
 interface DiffLine {
@@ -289,7 +313,13 @@ function buildSimpleDiff(search: string, replace: string): DiffLine[] {
   return diffLines;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+export const ChatMessage: React.FC<ChatMessageProps> = ({ message, dimmed }) => {
+  const textFg = dimmed ? "gray" : "white";
+  const systemFg = dimmed ? "gray" : "gray";
+  const successFg = dimmed ? "gray" : "green";
+  const errorFg = dimmed ? "gray" : "brightRed";
+  const infoFg = dimmed ? "gray" : "brightBlue";
+
   if (message.role === "system") {
     if (Array.isArray(message.content)) {
       return (
@@ -306,14 +336,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                     backgroundColor="#3c1b1b"
                     flexShrink={0}
                   >
-                    <text fg="brightRed" style={{ weight: "bold" }}>Error</text>
-                    <text fg="white">{block.content}</text>
+                    <text fg={errorFg} style={{ weight: "bold" }}>Error</text>
+                    <text fg={textFg}>{block.content}</text>
                   </box>
                 );
               }
               return (
                 <box key={idx} paddingLeft={2} marginBottom={1} flexShrink={0}>
-                  <text fg="green">✓ Success</text>
+                  <text fg={successFg}>✓ Success</text>
                 </box>
               );
             }
@@ -324,7 +354,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     }
     return (
       <box marginBottom={1} paddingLeft={2}>
-        <text fg="gray" style={{ italic: true }}>
+        <text fg={systemFg} style={{ italic: true }}>
           {message.content}
         </text>
       </box>
@@ -347,14 +377,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                     backgroundColor="#3c1b1b"
                     flexShrink={0}
                   >
-                    <text fg="brightRed" style={{ weight: "bold" }}>Error</text>
-                    <text fg="white">{block.content}</text>
+                    <text fg={errorFg} style={{ weight: "bold" }}>Error</text>
+                    <text fg={textFg}>{block.content}</text>
                   </box>
                 );
               }
               return (
                 <box key={idx} paddingLeft={2} marginBottom={1} flexShrink={0}>
-                  <text fg="green">✓ Success</text>
+                  <text fg={successFg}>✓ Success</text>
                 </box>
               );
             }
@@ -365,7 +395,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     }
     return (
       <box flexDirection="column" marginBottom={1} paddingLeft={2}>
-        <text fg="white">
+        <text fg={textFg}>
           {typeof message.content === "string"
             ? message.content
             : message.content
@@ -380,7 +410,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   if (typeof message.content === "string") {
     return (
       <box flexDirection="column" marginBottom={1} paddingLeft={2}>
-        <text fg="white">{message.content}</text>
+        <text fg={textFg}>{message.content}</text>
       </box>
     );
   }
@@ -390,7 +420,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       {message.content.map((block: ContentBlock, idx: number) => {
         if (block.type === "text") {
           return (
-            <text key={idx} fg="white">
+            <text key={idx} fg={textFg}>
               {block.text}
             </text>
           );
@@ -402,23 +432,23 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                 const changes = buildSimpleDiff(edit.search, edit.replace);
                 return (
                   <box key={eIdx} width="100%" flexDirection="column" paddingLeft={2} marginBottom={1} flexShrink={0}>
-                    <text fg="brightBlue" style={{ weight: "bold" }}>• Edit {edit.path}</text>
+                    <text fg={infoFg} style={{ weight: "bold" }}>• Edit {edit.path}</text>
                     <box flexDirection="column" backgroundColor="#1e1e24" padding={1} marginTop={1} width="100%" flexShrink={0}>
                       {changes.map((line, lIdx) => {
                         const isAddition = line.type === 'add';
                         const isDeletion = line.type === 'del';
                         
                         let lineBg = "transparent";
-                        let lineFg = "white";
+                        let lineFg = textFg;
                         let prefix = "  ";
 
                         if (isAddition) {
                           lineBg = "#1b3c22"; // Deep green block tint
-                          lineFg = "brightGreen";
+                          lineFg = dimmed ? "gray" : "brightGreen";
                           prefix = "+ ";
                         } else if (isDeletion) {
                           lineBg = "#3c1b1b"; // Deep red block tint
-                          lineFg = "brightRed";
+                          lineFg = dimmed ? "gray" : "brightRed";
                           prefix = "- ";
                         }
 
@@ -472,14 +502,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                 backgroundColor="#3c1b1b"
                 flexShrink={0}
               >
-                <text fg="brightRed" style={{ weight: "bold" }}>Error</text>
-                <text fg="white">{block.content}</text>
+                <text fg={errorFg} style={{ weight: "bold" }}>Error</text>
+                <text fg={textFg}>{block.content}</text>
               </box>
             );
           }
           return (
             <box key={idx} paddingLeft={2} marginBottom={1} flexShrink={0}>
-              <text fg="green">✓ Success</text>
+              <text fg={successFg}>✓ Success</text>
             </box>
           );
         }
@@ -503,14 +533,20 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
   onClose,
 }) => {
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useKeyboard((e) => {
     if (e.name === "down") {
-      setSelectedIndex((prev) => (prev + 1) % items.length);
+      setSelectedIndex((prev) => (prev + 1) % Math.max(1, filteredItems.length));
       e.preventDefault();
       e.stopPropagation();
     } else if (e.name === "up") {
-      setSelectedIndex((prev) => (prev - 1 + items.length) % items.length);
+      setSelectedIndex((prev) => (prev - 1 + filteredItems.length) % Math.max(1, filteredItems.length));
       e.preventDefault();
       e.stopPropagation();
     } else if (e.name === "escape") {
@@ -518,21 +554,15 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
       e.preventDefault();
       e.stopPropagation();
     } else if (e.name === "enter") {
-      onSelect(items[selectedIndex]);
-      e.preventDefault();
-      e.stopPropagation();
-    } else if (e.ctrl && e.name === "a") {
-      // Connect provider
-      e.preventDefault();
-      e.stopPropagation();
-    } else if (e.ctrl && e.name === "f") {
-      // Favorite
+      if (filteredItems[selectedIndex]) {
+        onSelect(filteredItems[selectedIndex]);
+      }
       e.preventDefault();
       e.stopPropagation();
     }
   });
 
-  const categories = Array.from(new Set(items.map((i) => i.category)));
+  const categories = Array.from(new Set(filteredItems.map((i) => i.category)));
 
   return (
     <box
@@ -544,6 +574,7 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
       justifyContent="center"
       alignItems="center"
       flexShrink={0}
+      backgroundColor="rgba(0,0,0,0.7)"
     >
       <box
         width={55}
@@ -561,36 +592,54 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
           <text fg="gray">esc</text>
         </box>
 
+        {/* Search box */}
+        <box flexDirection="row" backgroundColor="#27272a" paddingX={1} marginBottom={1} flexShrink={0}>
+          <input
+            focused={true}
+            value={searchQuery}
+            onInput={(val) => {
+              setSearchQuery(val);
+              setSelectedIndex(0);
+            }}
+            placeholder="Search"
+          />
+        </box>
+
         {/* Categories and List Items */}
         <box flexDirection="column">
           {categories.map((cat) => {
-            const catItems = items.filter((i) => i.category === cat);
+            const catItems = filteredItems.filter((i) => i.category === cat);
             return (
               <box key={cat} flexDirection="column" marginBottom={1}>
                 <text fg="brightBlue" style={{ weight: "bold" }}>
                   {cat}
                 </text>
-                 {catItems.map((item) => {
-                   const absIndex = items.indexOf(item);
-                   const isSelected = absIndex === selectedIndex;
-                   return (
-                     <box
-                       key={item.name}
-                       flexDirection="row"
-                       backgroundColor={isSelected ? "#e8a838" : undefined}
-                       paddingLeft={1}
-                       onMouseOver={() => setSelectedIndex(absIndex)}
-                       onMouseDown={() => onSelect(item)}
-                     >
-                       <text fg={isSelected ? "black" : "white"}>
-                         {isSelected ? "• " : "  "}
-                         <span style={{ weight: "bold" }}>{item.name}</span>
-                         {"   "}
-                         <span fg={isSelected ? "black" : "gray"}>{item.desc}</span>
-                       </text>
-                     </box>
-                   );
-                 })}
+                {catItems.map((item) => {
+                  const absIndex = filteredItems.indexOf(item);
+                  const isSelected = absIndex === selectedIndex;
+                  const hasCheck = (item as any).selected;
+                  return (
+                    <box
+                      key={item.name}
+                      flexDirection="row"
+                      backgroundColor={isSelected ? "#e8a838" : undefined}
+                      paddingLeft={1}
+                      onMouseOver={() => setSelectedIndex(absIndex)}
+                      onMouseDown={() => onSelect(item)}
+                    >
+                      <text fg={isSelected ? "black" : "white"}>
+                        {hasCheck ? (
+                          <span fg={isSelected ? "black" : "green"}>✓ </span>
+                        ) : (
+                          isSelected ? "• " : "  "
+                        )}
+                        <span style={{ weight: "bold" }}>{item.name}</span>
+                        {"   "}
+                        <span fg={isSelected ? "black" : "gray"}>{item.desc}</span>
+                      </text>
+                    </box>
+                  );
+                })}
               </box>
             );
           })}
@@ -599,7 +648,7 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
         {/* Footer shortcuts */}
         <box marginTop={1} flexDirection="row" gap={2}>
           <text fg="gray">
-            Connect provider <span fg="white">ctrl+a</span>   
+            Connect provider <span fg="white">ctrl+a</span>
           </text>
           <text fg="gray">
             Favorite <span fg="white">ctrl+f</span>
@@ -615,6 +664,8 @@ export interface InteractiveInputProps {
   modelName: string;
   onOpenModelPicker: () => void;
   onOpenAgentPicker: () => void;
+  onOpenProviderPicker: () => void;
+  dimmed?: boolean;
 }
 
 export const InteractiveInput: React.FC<InteractiveInputProps> = ({
@@ -622,6 +673,8 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
   modelName,
   onOpenModelPicker,
   onOpenAgentPicker,
+  onOpenProviderPicker,
+  dimmed,
 }) => {
   const [value, setValue] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -643,6 +696,25 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
     Math.max(0, filteredCommands.length - 1)
   );
 
+  const handleSelectCommand = (cmdName: string) => {
+    if (cmdName === "/agents") {
+      onOpenAgentPicker();
+      setValue("");
+      setSelectedIndex(0);
+    } else if (cmdName === "/models") {
+      onOpenModelPicker();
+      setValue("");
+      setSelectedIndex(0);
+    } else if (cmdName === "/connect") {
+      onOpenProviderPicker();
+      setValue("");
+      setSelectedIndex(0);
+    } else {
+      setValue(cmdName + " ");
+      setSelectedIndex(0);
+    }
+  };
+
   useKeyboard((e) => {
     if (showSlashMenu && filteredCommands.length > 0) {
       if (e.name === "down") {
@@ -658,8 +730,7 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
       } else if (e.name === "return" || e.name === "enter" || e.name === "tab") {
         const selected = filteredCommands[activeIndex];
         if (selected) {
-          setValue(selected.name + " ");
-          setSelectedIndex(0);
+          handleSelectCommand(selected.name);
           e.preventDefault();
           e.stopPropagation();
         }
@@ -701,10 +772,7 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
                    backgroundColor={isSelected ? "#e8a838" : undefined}
                    paddingX={1}
                    onMouseOver={() => setSelectedIndex(idx)}
-                   onMouseDown={() => {
-                     setValue(cmd.name + " ");
-                     setSelectedIndex(0);
-                   }}
+                   onMouseDown={() => handleSelectCommand(cmd.name)}
                  >
                   <text
                     fg={isSelected ? "black" : "white"}
@@ -724,11 +792,11 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
         {/* Input area with left cyan accent bar and flat zinc bg */}
         <box flexDirection="row" width="100%" backgroundColor="#27272a" flexShrink={0}>
           <box flexDirection="column" width={1}>
-            <text fg="brightCyan">▏</text>
-            <text fg="brightCyan">▏</text>
-            <text fg="brightCyan">▏</text>
-            <text fg="brightCyan">▏</text>
-            <text fg="brightCyan">▏</text>
+            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
+            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
+            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
+            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
+            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
           </box>
           <box
             flexDirection="column"
@@ -748,10 +816,10 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
               placeholder='Ask anything... "What is the tech stack of this project?"'
             />
             <box marginTop={1} flexDirection="row">
-              <text fg="cyan">Sisyphus</text>
-              <text fg="white"> {modelName} (OAuth)</text>
+              <text fg={dimmed ? "gray" : "cyan"}>Sisyphus</text>
+              <text fg={dimmed ? "gray" : "white"}> {modelName} (OAuth)</text>
               <text fg="gray"> OpenAI · </text>
-              <text fg="#e8a838">medium</text>
+              <text fg={dimmed ? "gray" : "#e8a838"}>medium</text>
             </box>
           </box>
         </box>
@@ -788,6 +856,8 @@ export interface SessionInputProps {
   elapsed?: string;
   onOpenModelPicker: () => void;
   onOpenAgentPicker: () => void;
+  onOpenProviderPicker: () => void;
+  dimmed?: boolean;
 }
 
 export const SessionInput: React.FC<SessionInputProps> = ({
@@ -797,6 +867,8 @@ export const SessionInput: React.FC<SessionInputProps> = ({
   elapsed,
   onOpenModelPicker,
   onOpenAgentPicker,
+  onOpenProviderPicker,
+  dimmed,
 }) => {
   const [value, setValue] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -818,6 +890,25 @@ export const SessionInput: React.FC<SessionInputProps> = ({
     Math.max(0, filteredCommands.length - 1)
   );
 
+  const handleSelectCommand = (cmdName: string) => {
+    if (cmdName === "/agents") {
+      onOpenAgentPicker();
+      setValue("");
+      setSelectedIndex(0);
+    } else if (cmdName === "/models") {
+      onOpenModelPicker();
+      setValue("");
+      setSelectedIndex(0);
+    } else if (cmdName === "/connect") {
+      onOpenProviderPicker();
+      setValue("");
+      setSelectedIndex(0);
+    } else {
+      setValue(cmdName + " ");
+      setSelectedIndex(0);
+    }
+  };
+
   useKeyboard((e) => {
     if (showSlashMenu && filteredCommands.length > 0) {
       if (e.name === "down") {
@@ -833,8 +924,7 @@ export const SessionInput: React.FC<SessionInputProps> = ({
       } else if (e.name === "return" || e.name === "enter" || e.name === "tab") {
         const selected = filteredCommands[activeIndex];
         if (selected) {
-          setValue(selected.name + " ");
-          setSelectedIndex(0);
+          handleSelectCommand(selected.name);
           e.preventDefault();
           e.stopPropagation();
         }
@@ -888,10 +978,7 @@ export const SessionInput: React.FC<SessionInputProps> = ({
                    backgroundColor={isSelected ? "#e8a838" : undefined}
                    paddingX={1}
                    onMouseOver={() => setSelectedIndex(idx)}
-                   onMouseDown={() => {
-                     setValue(cmd.name + " ");
-                     setSelectedIndex(0);
-                   }}
+                   onMouseDown={() => handleSelectCommand(cmd.name)}
                  >
                   <text
                     fg={isSelected ? "black" : "white"}
@@ -911,9 +998,9 @@ export const SessionInput: React.FC<SessionInputProps> = ({
         {/* Compact input with left cyan accent bar and flat zinc bg */}
         <box flexDirection="row" width="100%" backgroundColor="#27272a" flexShrink={0}>
           <box flexDirection="column" width={1}>
-            <text fg="brightCyan">▏</text>
-            <text fg="brightCyan">▏</text>
-            <text fg="brightCyan">▏</text>
+            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
+            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
+            <text fg={dimmed ? "gray" : "brightCyan"}>▏</text>
           </box>
           <box flexGrow={1} paddingY={1} paddingLeft={1} paddingRight={1}>
             <input
@@ -931,7 +1018,7 @@ export const SessionInput: React.FC<SessionInputProps> = ({
 
       {/* Bottom status bar */}
       <box flexDirection="row" marginTop={1}>
-        <text fg="green">Build</text>
+        <text fg={dimmed ? "gray" : "green"}>Build</text>
         <text fg="gray"> {modelName} llama.cpp (hosted)</text>
       </box>
     </box>
