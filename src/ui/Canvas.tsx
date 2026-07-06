@@ -575,7 +575,7 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
     >
       <box
         width={70}
-        height={18}
+        maxHeight={18}
         flexDirection="column"
         backgroundColor="#161618"
         paddingY={1}
@@ -604,7 +604,7 @@ export const PickerOverlay: React.FC<PickerOverlayProps> = ({
         </box>
 
         {/* Categories and List Items - SCROLLABLE container */}
-        <box flexDirection="column" flexGrow={1} overflowY="scroll">
+        <box flexDirection="column" maxHeight={10} overflowY="scroll" flexShrink={1}>
           {categories.map((cat) => {
             const catItems = filteredItems.filter((i) => i.category === cat);
             return (
