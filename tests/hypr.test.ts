@@ -451,3 +451,30 @@ describe("Multi-Provider Config & Payload Translation", () => {
   });
 });
 
+describe("Directory-Isolated Session Router", () => {
+  test("Directory mapping assigns unique session IDs per folder path", async () => {
+    const { globalPersistence } = await import("../src/daemon/persistence.ts");
+    
+    const idA = globalPersistence.getSessionIdForDirectory("C:\\projectA");
+    const idB = globalPersistence.getSessionIdForDirectory("C:\\projectB");
+    
+    expect(idA).not.toBe(idB);
+    expect(idA).toContain("session-");
+  });
+
+  test("session/reset assigns new session ID and flushes message logs", async () => {
+    const { HyprDaemon } = await import("../src/daemon/daemon.ts");
+    
+    const daemon = new HyprDaemon();
+    daemon["messages"] = [{ role: "user", content: "some text content" }];
+    
+    const mockSocket = { write: () => {} };
+    await daemon["handleClientRequest"](mockSocket, {
+      method: "session/reset"
+    });
+
+    expect(daemon["messages"].length).toBe(0);
+    expect(daemon["sessionId"]).toContain("test-reset-");
+  });
+});
+

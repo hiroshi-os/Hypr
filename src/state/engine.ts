@@ -53,6 +53,10 @@ export class ConversationState {
     this.messages.push(msg);
   }
 
+  clearMessages() {
+    this.messages = [];
+  }
+
   clone(): ConversationState {
     const newState = new ConversationState(this.systemPrompt);
     // Deep clone the messages
