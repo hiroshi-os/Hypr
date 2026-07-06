@@ -19,6 +19,7 @@ import { globalPersistence, SessionStateSnapshot } from "./persistence.ts";
 import { AGENTS_LIST } from "../ui/Canvas.tsx";
 import { ScopedSubagent } from "./subagent.ts";
 import { globalCompactor } from "./compactor.ts";
+import { globalLspManager } from "./lsp.ts";
 
 const toolsList = [
   readFileTool,
@@ -452,6 +453,27 @@ export class HyprDaemon {
               this.broadcastState();
 
               const res = await tool.execute(call.input);
+
+              // ── Epic 2: Connect didChange / didOpen notification synchronization ──
+              if (res && !res.isError) {
+                if (tool.name === "write_file" && call.input?.TargetFile && call.input?.CodeContent) {
+                  globalLspManager.notifyFileChanged(call.input.TargetFile, call.input.CodeContent);
+                } else if (tool.name === "edit_file" && call.input?.path) {
+                  try {
+                    const content = fs.readFileSync(call.input.path, "utf-8");
+                    globalLspManager.notifyFileChanged(call.input.path, content);
+                  } catch (_) {}
+                } else if (tool.name === "apply_multi_diff" && call.input?.edits) {
+                  for (const ed of call.input.edits) {
+                    if (ed.path) {
+                      try {
+                        const content = fs.readFileSync(ed.path, "utf-8");
+                        globalLspManager.notifyFileChanged(ed.path, content);
+                      } catch (_) {}
+                    }
+                  }
+                }
+              }
 
               // ── Phase 4: afterToolCall lifecycle hook ───────────────────
               const { payload: finalResult } = await globalPluginManager.runHook("afterToolCall", res);
