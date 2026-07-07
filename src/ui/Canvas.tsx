@@ -1105,6 +1105,10 @@ export const InteractiveInput: React.FC<InteractiveInputProps> = ({
       onOpenProviderPicker();
       setValue("");
       setSelectedIndex(0);
+    } else if (cmdName === "/new") {
+      handleSubmit("/new");
+      setValue("");
+      setSelectedIndex(0);
     } else if (cmdName === "/variant") {
       onOpenVariantPicker();
       setValue("");
